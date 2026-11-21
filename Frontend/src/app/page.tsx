@@ -191,12 +191,12 @@ export default function Home() {
   };
 
   // Function to fetch hoax articles catalog
-  const fetchLiveHoaxArticles = (cat?: string) => {
-    const url =
-      cat && cat !== "Semua"
-        ? `http://localhost:8000/api/hoax-articles?category=${encodeURIComponent(cat)}`
-        : "http://localhost:8000/api/hoax-articles";
-    fetch(url)
+  const fetchLiveHoaxArticles = (cat?: string, search?: string) => {
+    const params = new URLSearchParams();
+    if (cat && cat !== "Semua") params.append("category", cat);
+    if (search && search.trim()) params.append("q", search.trim());
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    fetch(`http://localhost:8000/api/hoax-articles${qs}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setLiveHoaxArticles(data);
@@ -308,13 +308,31 @@ export default function Home() {
 
   // Reusable Hoax News Section (matching uploaded reference)
   const renderHoaxNewsSection = () => {
-    const filteredHoaxPlaceholders = HOAX_NEWS_PLACEHOLDERS.filter((item) => {
-      const q = hoaxSearchQuery.toLowerCase().trim();
+    const q = hoaxSearchQuery.toLowerCase().trim();
+
+    // 1. Filter live articles from Supabase
+    const filteredLiveArticles = liveHoaxArticles.filter((item) => {
+      const matchesQuery =
+        !q ||
+        item.title?.toLowerCase().includes(q) ||
+        item.category?.toLowerCase().includes(q) ||
+        item.narasi?.toLowerCase().includes(q) ||
+        item.penjelasan?.toLowerCase().includes(q) ||
+        item.kesimpulan?.toLowerCase().includes(q);
+
+      const matchesCat =
+        selectedHoaxCategory === "Semua" ||
+        item.category?.toLowerCase().includes(selectedHoaxCategory.toLowerCase());
+
+      return matchesQuery && matchesCat;
+    });
+
+    // 2. Filter placeholders if live data is empty
+    const filteredPlaceholders = HOAX_NEWS_PLACEHOLDERS.filter((item) => {
       const matchesQuery =
         !q ||
         item.title.toLowerCase().includes(q) ||
-        item.tag.toLowerCase().includes(q) ||
-        item.id.toString() === q.replace("#", "");
+        item.tag.toLowerCase().includes(q);
 
       const matchesCat =
         selectedHoaxCategory === "Semua" ||
@@ -322,6 +340,9 @@ export default function Home() {
 
       return matchesQuery && matchesCat;
     });
+
+    const isUsingLive = liveHoaxArticles.length > 0;
+    const currentList = isUsingLive ? filteredLiveArticles : filteredPlaceholders;
 
     return (
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -337,7 +358,13 @@ export default function Home() {
           </div>
 
           {/* Search Bar & Category Filter */}
-          <div className="space-y-3 max-w-3xl">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              fetchLiveHoaxArticles(selectedHoaxCategory, hoaxSearchQuery);
+            }}
+            className="space-y-3 max-w-3xl"
+          >
             <div className="flex flex-col sm:flex-row gap-2.5">
               <div className="relative flex-1 flex items-center rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 shadow-2xs transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex h-9 w-9 items-center justify-center text-slate-400 dark:text-zinc-500 shrink-0">
@@ -353,8 +380,11 @@ export default function Home() {
                 {hoaxSearchQuery && (
                   <button
                     type="button"
-                    onClick={() => setHoaxSearchQuery("")}
-                    className="mr-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                    onClick={() => {
+                      setHoaxSearchQuery("");
+                      fetchLiveHoaxArticles(selectedHoaxCategory, "");
+                    }}
+                    className="mr-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 cursor-pointer"
                     title="Hapus pencarian"
                   >
                     <X className="h-4 w-4" strokeWidth={1.75} />
@@ -363,7 +393,7 @@ export default function Home() {
               </div>
 
               <button
-                type="button"
+                type="submit"
                 className="flex items-center justify-center gap-1.5 rounded-lg bg-[#185adb] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all shrink-0 cursor-pointer"
               >
                 <Search className="h-4 w-4" strokeWidth={2} />
@@ -380,8 +410,11 @@ export default function Home() {
                 <button
                   key={cat}
                   type="button"
-                  onClick={() => setSelectedHoaxCategory(cat)}
-                  className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs ${
+                  onClick={() => {
+                    setSelectedHoaxCategory(cat);
+                    fetchLiveHoaxArticles(cat, hoaxSearchQuery);
+                  }}
+                  className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs cursor-pointer ${
                     selectedHoaxCategory === cat
                       ? "bg-[#185adb] text-white shadow-2xs"
                       : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
@@ -391,121 +424,106 @@ export default function Home() {
                 </button>
               ))}
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Main Content: Hoax News Cards */}
         <div className="w-full">
-          {filteredHoaxPlaceholders.length === 0 ? (
+          {currentList.length === 0 ? (
             <div className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
               <FileSearch className="mx-auto h-8 w-8 text-slate-300 dark:text-zinc-600 mb-2" strokeWidth={1.5} />
               <p className="text-sm font-medium text-slate-600 dark:text-zinc-400">
-                Tidak ada slot berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
+                Tidak ada berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
               </p>
               <button
                 type="button"
                 onClick={() => {
                   setHoaxSearchQuery("");
                   setSelectedHoaxCategory("Semua");
+                  fetchLiveHoaxArticles("Semua", "");
                 }}
-                className="mt-3 text-xs font-semibold text-[#185adb] hover:underline"
+                className="mt-3 text-xs font-semibold text-[#185adb] hover:underline cursor-pointer"
               >
                 Reset pencarian
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {liveHoaxArticles.length > 0 ? (
-                liveHoaxArticles
-                  .filter((item) => {
-                    const q = hoaxSearchQuery.toLowerCase().trim();
-                    return (
-                      !q ||
-                      item.title?.toLowerCase().includes(q) ||
-                      item.category?.toLowerCase().includes(q) ||
-                      item.narasi?.toLowerCase().includes(q)
-                    );
-                  })
-                  .map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/berita-hoax/${item.id}`}
-                      className="group relative flex flex-col justify-end overflow-hidden rounded-lg border border-slate-200 bg-slate-900 shadow-2xs hover:border-[#185adb] hover:shadow-md transition-all duration-300 aspect-[3/4] min-h-[340px]"
-                    >
-                      {/* Full Bleed Image (Memenuhi Card) */}
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                          <FileSearch className="h-10 w-10 text-slate-400" strokeWidth={1.5} />
-                        </div>
-                      )}
-
-                      {/* Gradiasi Warna Putih untuk bagian tulisan */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 via-50% to-transparent dark:from-zinc-950 dark:via-zinc-950/90 dark:via-50% dark:to-transparent" />
-
-                      {/* Content Layer over white gradient */}
-                      <div className="relative z-10 p-4 space-y-2">
-                        <div>
-                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50/95 border border-rose-200 rounded px-2 py-0.5 font-bold shadow-2xs">
-                            {item.category || "HOAKS"}
-                          </span>
-                          <h3 className="mt-2 font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
-                            {item.title}
-                          </h3>
-                        </div>
-
-                        {/* Footer Info */}
-                        <div className="flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-[11px] dark:border-zinc-800/80">
-                          <span className="text-slate-500 dark:text-zinc-400 font-medium">
-                            {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
-                          </span>
-                          <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
-                            Cek Berita →
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))
-              ) : (
-                filteredHoaxPlaceholders.map((item) => (
-                  <div
+              {isUsingLive ? (
+                currentList.map((item) => (
+                  <Link
                     key={item.id}
-                    className="group relative flex flex-col justify-end overflow-hidden rounded-lg border border-dashed border-slate-200 bg-slate-100 shadow-2xs hover:border-blue-300 transition-all duration-300 aspect-[3/4] min-h-[340px]"
+                    href={`/berita-hoax/${item.id}`}
+                    className="group flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
                   >
-                    {/* Placeholder Background */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-4">
-                      <FileSearch className="h-10 w-10 mb-2 opacity-60 text-slate-400" strokeWidth={1.5} />
-                      <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
-                    </div>
+                    <div>
+                      {/* Thumbnail Image */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+                        )}
+                      </div>
 
-                    {/* Gradiasi Warna Putih untuk bagian tulisan */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 via-50% to-transparent dark:from-zinc-950 dark:via-zinc-950/90 dark:via-50% dark:to-transparent" />
-
-                    {/* Content Layer over white gradient */}
-                    <div className="relative z-10 p-4 space-y-2">
-                      <div>
-                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-500 dark:text-zinc-400 border border-slate-200/90 rounded px-1.5 py-0.5 bg-white/80 dark:bg-zinc-800/80">
-                          {item.tag}
+                      {/* Title & Tag */}
+                      <div className="mt-3.5 space-y-1.5">
+                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 rounded px-2 py-0.5 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400 font-bold">
+                          {item.category || "HOAKS"}
                         </span>
-                        <h3 className="mt-2 font-bold text-xs sm:text-sm text-slate-600 dark:text-zinc-300 line-clamp-2 leading-snug">
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
                           {item.title}
                         </h3>
                       </div>
+                    </div>
 
-                      {/* Footer Info Placeholder */}
-                      <div className="flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-[11px] dark:border-zinc-800/80">
-                        <span className="text-slate-400 dark:text-zinc-500 font-medium">
-                          {item.date}
-                        </span>
-                        <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
-                          Menunggu Data →
-                        </span>
+                    {/* Footer Info */}
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                      <span className="text-slate-500 dark:text-zinc-400 font-medium">
+                        {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
+                      </span>
+                      <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
+                        Cek Berita →
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                currentList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                  >
+                    <div>
+                      {/* Thumbnail Image Placeholder */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
+                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
+                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
                       </div>
+
+                      {/* Title & Tag Placeholder */}
+                      <div className="mt-3.5 space-y-1.5">
+                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                          {item.tag}
+                        </span>
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Footer Info Placeholder */}
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                      <span className="text-slate-400 dark:text-zinc-500 font-medium">
+                        {item.date}
+                      </span>
+                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
+                        Menunggu Data →
+                      </span>
                     </div>
                   </div>
                 ))
@@ -513,10 +531,10 @@ export default function Home() {
             </div>
           )}
 
-          {/* Pagination bar for placeholder items */}
+          {/* Pagination bar */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
             <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {filteredHoaxPlaceholders.length}</strong> dari <strong>{HOAX_NEWS_PLACEHOLDERS.length}</strong> slot data kosong
+              Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {currentList.length}</strong> dari <strong>{isUsingLive ? liveHoaxArticles.length : HOAX_NEWS_PLACEHOLDERS.length}</strong> {isUsingLive ? "berita hoaks terverifikasi" : "slot data kosong"}
             </span>
             <div className="flex items-center gap-1.5 text-xs">
               <button

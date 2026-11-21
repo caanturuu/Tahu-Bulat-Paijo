@@ -88,18 +88,26 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
 {json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di basis data."}
 """
 
-    models_to_try = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]
-    for model_name in models_to_try:
+    models_to_try = [
+        {"model": "gemini-3.1-flash-lite", "budget": 0},
+        {"model": "gemini-3.5-flash-lite", "budget": None},
+    ]
+    for item in models_to_try:
+        model_name = item["model"]
+        budget = item["budget"]
         try:
+            cfg = types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+                max_output_tokens=400,
+            )
+            if budget is not None:
+                cfg.thinking_config = types.ThinkingConfig(thinking_budget=budget)
+
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1,
-                    max_output_tokens=400,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
-                ),
+                config=cfg,
             )
 
             result = json.loads(response.text)

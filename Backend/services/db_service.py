@@ -45,7 +45,7 @@ def get_audit_history(limit: int = 50, user_address: Optional[str] = None) -> Li
         print(f"[Supabase] get_audit_history error: {e}")
         return []
 
-def get_hoax_articles(limit: int = 50, category: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_hoax_articles(limit: int = 50, category: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve catalog of verified hoax articles for the card grid."""
     client = get_supabase_client()
     if not client:
@@ -54,6 +54,9 @@ def get_hoax_articles(limit: int = 50, category: Optional[str] = None) -> List[D
         query = client.table("hoax_articles").select("*")
         if category and category.lower() != "semua":
             query = query.ilike("category", f"%{category}%")
+        if search and search.strip():
+            s = f"%{search.strip()}%"
+            query = query.or_(f"title.ilike.{s},narasi.ilike.{s},category.ilike.{s}")
         res = query.order("created_at", desc=True).limit(limit).execute()
         return res.data or []
     except Exception as e:

@@ -379,9 +379,9 @@ def read_audit_history(limit: int = 50, user_address: Optional[str] = None):
     return get_audit_history(limit=limit, user_address=user_address.strip())
 
 @app.get("/api/hoax-articles")
-def read_hoax_articles(limit: int = 50, category: Optional[str] = None):
+def read_hoax_articles(limit: int = 50, category: Optional[str] = None, q: Optional[str] = None):
     """Retrieve catalog of hoax articles from Supabase table hoax_articles."""
-    return get_hoax_articles(limit=limit, category=category)
+    return get_hoax_articles(limit=limit, category=category, search=q)
 
 @app.get("/api/hoax-articles/{article_id}")
 def read_single_hoax_article(article_id: str):

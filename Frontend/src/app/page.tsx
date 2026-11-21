@@ -611,8 +611,8 @@ export default function Home() {
                 </div>
               ))}
 
-              {/* Top soft contrast overlay */}
-              <div className="absolute inset-0 bg-white/10 backdrop-contrast-[1.05] z-2" />
+              {/* Top soft contrast overlay for photography background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/30 to-white/95 dark:from-black/40 dark:via-zinc-950/40 dark:to-zinc-950 z-2" />
 
               {/* Bottom gradient fade into page body */}
               <div className="absolute bottom-0 inset-x-0 h-48 sm:h-72 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-zinc-950 dark:via-zinc-950/85 z-2" />
@@ -620,8 +620,11 @@ export default function Home() {
 
             {/* Hero Main Content */}
             <div className="relative z-10 mx-auto w-full max-w-4xl px-3 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-32 lg:pt-20 lg:pb-40 text-center my-auto">
-              {/* Modern Sans Display Headline (Geist Sans Display Anti-Slop Discipline) */}
-              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-slate-900 leading-[1.18] tracking-tight drop-shadow-xs dark:text-white px-2">
+              {/* Luminous ambient halo behind title for crystal clear legibility on all photos */}
+              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-56 rounded-full bg-white/70 blur-3xl pointer-events-none -z-10 dark:bg-black/60" />
+
+              {/* Editorial Serif Headline (Crisp contrast on light, dark, and dynamic photography) */}
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-bold font-serif text-slate-900 leading-[1.18] tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.95)] drop-shadow-[0_1px_3px_rgba(255,255,255,1)] dark:text-white dark:drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] px-2">
                 Berita apa yang ingin
                 <br />
                 Anda periksa hari ini?
@@ -666,46 +669,6 @@ export default function Home() {
                     )}
                   </button>
                 </form>
-
-                {/* Quick Topic Chips */}
-                <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
-                  <span className="text-slate-600 dark:text-zinc-400 font-medium hidden sm:inline">
-                    Contoh topik:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleQuickTopic(
-                        "Klaim pencabutan subsidi BBM dan tarif listrik 2026"
-                      )
-                    }
-                    className="rounded-full bg-white/90 backdrop-blur-sm px-2.5 sm:px-3 py-1 text-slate-700 border border-slate-200/80 hover:bg-white hover:text-blue-600 active:scale-95 transition-all shadow-xs dark:bg-zinc-900/90 dark:border-zinc-800 dark:text-zinc-300 dark:hover:text-blue-400"
-                  >
-                    Subsidi BBM Dicabut
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleQuickTopic(
-                        "Rekayasa suara AI pejabat publik di WhatsApp"
-                      )
-                    }
-                    className="rounded-full bg-white/90 backdrop-blur-sm px-2.5 sm:px-3 py-1 text-slate-700 border border-slate-200/80 hover:bg-white hover:text-blue-600 active:scale-95 transition-all shadow-xs dark:bg-zinc-900/90 dark:border-zinc-800 dark:text-zinc-300 dark:hover:text-blue-400"
-                  >
-                    Deepfake Suara Pejabat
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleQuickTopic(
-                        "https://kompas.com/cekfakta/contoh-berita-valid"
-                      )
-                    }
-                    className="rounded-full bg-white/90 backdrop-blur-sm px-2.5 sm:px-3 py-1 text-slate-700 border border-slate-200/80 hover:bg-white hover:text-blue-600 active:scale-95 transition-all shadow-xs dark:bg-zinc-900/90 dark:border-zinc-800 dark:text-zinc-300 dark:hover:text-blue-400"
-                  >
-                    URL Berita Valid
-                  </button>
-                </div>
               </div>
             </div>
           </section>

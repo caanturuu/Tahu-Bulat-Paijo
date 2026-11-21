@@ -11,6 +11,9 @@ import {
   Check,
   ShieldCheck,
   Link2,
+  BookOpen,
+  HelpCircle,
+  FileText,
 } from "lucide-react";
 import { VerificationResult } from "@/types";
 import { formatDate, shortenHash } from "@/lib/utils";
@@ -32,13 +35,13 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  // 1. Rigorous, robust status classification
+  // 1. Strict & unambiguous status determination
   const isPopulated = Boolean(data);
   const score = data?.credibilityScore ?? 0;
   const statusStr = (data?.status || "").toUpperCase();
   const ratingLower = (data?.claimsReview?.[0]?.rating || "").toLowerCase();
 
-  // Hoax check (0 - 40 or explicit hoax rating)
+  // Hoax check (score <= 40 or explicit hoax keywords)
   const isHoax =
     isPopulated &&
     (statusStr === "HOAX" ||
@@ -48,7 +51,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       ratingLower.includes("hoax") ||
       (ratingLower.includes("salah") && !ratingLower.includes("sebagian")));
 
-  // Questionable / Misleading check (41 - 70 or explicit questionable/misleading rating)
+  // Questionable / Misleading check (score 41 - 70 or questionable/misleading keywords)
   const isMeragukan =
     isPopulated &&
     !isHoax &&
@@ -61,18 +64,18 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       ratingLower.includes("privat") ||
       ratingLower.includes("bukan berita"));
 
-  // Valid / Benar check (ONLY when score >= 71 or status is strictly VALID, never when < 71)
+  // Valid / Benar check (score >= 71 or strictly VALID status)
   const isBenar =
     isPopulated &&
     !isHoax &&
     !isMeragukan &&
     (statusStr === "VALID" || score >= 71);
 
-  // Validation verdict styling
+  // Status visual attributes
   let verdictTitle = "BELUM DIUJI";
   let verdictSubtitle = "MENUNGGU INPUT BERITA";
   let verdictBadgeBg = "bg-slate-100 border-slate-300 text-slate-700";
-  let verdictCardBg = "bg-slate-50/70 border-slate-200";
+  let verdictScoreBoxBg = "bg-slate-50 border-slate-200";
   let scoreColor = "text-slate-400";
   let barColor = "bg-slate-300";
   let barWidth = "0%";
@@ -82,7 +85,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "HOAKS / KONTEN PALSU";
     verdictSubtitle = "FABRICATED / FALSE CONTENT";
     verdictBadgeBg = "bg-rose-100 border-rose-300 text-rose-800";
-    verdictCardBg = "bg-rose-50/40 border-rose-200/90";
+    verdictScoreBoxBg = "bg-rose-50/50 border-rose-200";
     scoreColor = "text-rose-600";
     barColor = "bg-rose-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -91,7 +94,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "KONTEN MENYESATKAN";
     verdictSubtitle = "MISLEADING CONTENT";
     verdictBadgeBg = "bg-amber-100 border-amber-300 text-amber-900";
-    verdictCardBg = "bg-amber-50/40 border-amber-200/90";
+    verdictScoreBoxBg = "bg-amber-50/50 border-amber-200";
     scoreColor = "text-amber-600";
     barColor = "bg-amber-500";
     barWidth = `${Math.max(score, 14)}%`;
@@ -100,7 +103,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "FAKTA VALID / TERKONFIRMASI";
     verdictSubtitle = "VERIFIED ACCURATE CONTENT";
     verdictBadgeBg = "bg-emerald-100 border-emerald-300 text-emerald-800";
-    verdictCardBg = "bg-emerald-50/40 border-emerald-200/90";
+    verdictScoreBoxBg = "bg-emerald-50/50 border-emerald-200";
     scoreColor = "text-emerald-700";
     barColor = "bg-emerald-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -210,10 +213,12 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     : "Kesimpulan definitif dari tim pemeriksa fakta akan disajikan di sini untuk memberikan kepastian dan klarifikasi yang mudah dipahami bagi pembaca.";
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 text-slate-900 shadow-xs transition-all duration-300">
-      {/* ================= 1. BAGIAN ATAS: VALIDASI ================= */}
-      <section aria-labelledby="section-validasi" className="w-full">
-        {/* Top Meta Bar */}
+    <div className="w-full space-y-6">
+      {/* ============================================================== */}
+      {/* KARTU 1: VALIDASI (HASIL PEMERIKSAAN FAKTA & SKOR KREDIBILITAS) */}
+      {/* ============================================================== */}
+      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+        {/* Top Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4 mb-6">
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 shrink-0">
@@ -242,184 +247,183 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           )}
         </div>
 
-        {/* Big Visual Verdict Card */}
-        <div
-          className={`rounded-2xl border p-5 sm:p-7 transition-all w-full ${verdictCardBg}`}
-        >
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 w-full">
-            {/* Left: Stamp Badge & Claim Headline */}
-            <div className="space-y-3 flex-1 min-w-0">
-              {/* Verdict Stamp */}
-              <div
-                className={`inline-flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-2xs font-bold ${verdictBadgeBg}`}
-              >
-                <VerdictIcon className="h-5 w-5 shrink-0" strokeWidth={2.2} />
-                <div className="leading-tight">
-                  <div className="text-xs sm:text-sm font-black tracking-wide uppercase">
-                    {verdictTitle}
-                  </div>
-                  <div className="text-[10px] sm:text-[11px] font-semibold opacity-80 uppercase tracking-wider">
-                    {verdictSubtitle}
-                  </div>
+        {/* 12-Column Responsive Grid: Kolom Kiri (Stempel & Judul) + Kolom Kanan (Skor Kredibilitas) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Kolom Kiri: 8 Kolom (Stempel & Teks Klaim) */}
+          <div className="lg:col-span-8 space-y-4 min-w-0">
+            {/* Stempel Status Validasi */}
+            <div
+              className={`inline-flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-2xs font-bold ${verdictBadgeBg}`}
+            >
+              <VerdictIcon className="h-5 w-5 shrink-0" strokeWidth={2.2} />
+              <div className="leading-tight">
+                <div className="text-xs sm:text-sm font-black tracking-wide uppercase">
+                  {verdictTitle}
+                </div>
+                <div className="text-[10px] sm:text-[11px] font-semibold opacity-80 uppercase tracking-wider">
+                  {verdictSubtitle}
                 </div>
               </div>
-
-              {/* Main Claim Title */}
-              {isPopulated ? (
-                isRawUrl(data?.title) ? (
-                  <div className="space-y-1.5 pt-1">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      <Link2 className="h-3.5 w-3.5" />
-                      Tautan URL yang Diperiksa:
-                    </span>
-                    <div className="rounded-lg bg-white/90 border border-slate-200/90 p-2.5 sm:p-3">
-                      <span className="font-mono text-xs sm:text-sm text-slate-900 break-all select-all font-medium leading-relaxed block">
-                        {data?.title}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <h2 className="text-xl sm:text-2xl lg:text-[24px] font-bold text-slate-900 leading-snug tracking-tight break-words pt-1">
-                    “{data?.title}”
-                  </h2>
-                )
-              ) : (
-                <h2 className="text-xl sm:text-2xl lg:text-[24px] font-bold text-slate-400 italic leading-snug tracking-tight pt-1">
-                  “Menunggu Kueri Berita yang Ingin Anda Periksa”
-                </h2>
-              )}
-
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed break-words">
-                {isPopulated
-                  ? `Beredar di ${data?.publisher || "media daring publik"}. Diverifikasi oleh konsorsium jurnalisme bersertifikasi IFCN.`
-                  : "Masukkan tautan portal berita, ketik isu yang beredar, atau unggah tangkapan layar pada kolom pencarian di atas."}
-              </p>
             </div>
 
-            {/* Right: Credibility Score & Progress Bar */}
-            <div className="flex flex-col items-start lg:items-end justify-center rounded-xl bg-white/95 p-4 sm:p-5 border border-slate-200/80 shrink-0 w-full sm:w-60 shadow-2xs">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            {/* Judul Berita / Tautan URL yang Diperiksa */}
+            {isPopulated ? (
+              isRawUrl(data?.title) ? (
+                <div className="space-y-1.5">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <Link2 className="h-3.5 w-3.5" />
+                    Tautan URL yang Diperiksa:
+                  </span>
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                    <span className="font-mono text-xs sm:text-sm text-slate-900 break-all select-all font-medium leading-relaxed block">
+                      {data?.title}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug tracking-tight break-words">
+                  “{data?.title}”
+                </h2>
+              )
+            ) : (
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-400 italic leading-snug tracking-tight">
+                “Menunggu Kueri Berita yang Ingin Anda Periksa”
+              </h2>
+            )}
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed break-words">
+              {isPopulated
+                ? `Beredar di ${data?.publisher || "media daring publik"}. Diverifikasi oleh konsorsium jurnalisme bersertifikasi IFCN.`
+                : "Masukkan tautan portal berita, ketik isu yang beredar, atau unggah tangkapan layar pada kolom pencarian di atas."}
+            </p>
+
+            {/* Pemeriksa & Penilaian Resmi */}
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-baseline justify-between gap-2 text-xs">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
+                  Pemeriksa & Penilaian
+                </span>
+                <span className="font-bold text-slate-800">{reviewPublisher}</span>
+                <span className="text-slate-500 ml-2">
+                  Penilaian: <strong className="text-slate-900">{reviewRating}</strong>
+                </span>
+              </div>
+              {reviewUrl && (
+                <a
+                  href={reviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[#185adb] hover:underline font-semibold"
+                >
+                  Laporan Lengkap <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Kolom Kanan: 4 Kolom (Skor Kredibilitas - 100% Terkandung di Dalam Grid, Tidak Offside) */}
+          <div className="lg:col-span-4 flex flex-col justify-between rounded-2xl border p-5 shadow-2xs w-full min-w-0 bg-white">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
                 Skor Kredibilitas
               </span>
 
-              <div className="my-1.5 flex items-baseline">
+              <div className="my-2 flex items-baseline">
                 <span
-                  className={`text-4xl sm:text-5xl font-extrabold tracking-tight leading-none ${scoreColor}`}
+                  className={`text-5xl font-black tracking-tight leading-none ${scoreColor}`}
                 >
                   {isPopulated ? score : "--"}
                 </span>
-                <span className="text-xs sm:text-sm font-semibold text-slate-400 ml-1">
+                <span className="text-sm font-semibold text-slate-400 ml-1.5">
                   /100
                 </span>
               </div>
 
-              {/* Progress Bar */}
-              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden my-1.5">
+              {/* Bilah Progres */}
+              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden my-2 border border-slate-200/50">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${barColor}`}
                   style={{ width: barWidth }}
                 />
               </div>
 
-              <span className="text-[11px] font-medium text-slate-500 mt-1">
-                Dipublikasikan: {publishedDateText}
-              </span>
-            </div>
-          </div>
-
-          {/* Bottom Bar inside Validation Hero: Verifier & Cryptographic On-Chain Proof */}
-          <div className="mt-6 pt-5 border-t border-slate-200/70 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs w-full">
-            {/* Fact-checker details */}
-            <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
-                Pemeriksa & Penilaian
-              </span>
-              <div className="font-semibold text-slate-800 break-words">
-                {reviewPublisher}
-              </div>
-              <div className="text-slate-600 mt-0.5 break-words">
-                Penilaian Resmi: <strong className="text-slate-900">{reviewRating}</strong>
-                {reviewUrl && (
-                  <a
-                    href={reviewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 inline-flex items-center gap-0.5 text-[#185adb] hover:underline font-semibold"
-                  >
-                    Laporan Lengkap <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+              <div className={`text-xs font-bold mt-2 uppercase tracking-wider ${scoreColor}`}>
+                {verdictTitle}
               </div>
             </div>
 
-            {/* Blockchain On-Chain & IPFS Proof */}
-            <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
-                Bukti Audit On-Chain (Base L2)
-              </span>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[11px] text-slate-700">
-                <div className="flex items-center gap-1">
-                  <span className="text-slate-400 font-sans">Hash:</span>
-                  <span>{displayHash}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy("hash", rawHash)}
-                    disabled={!isPopulated}
-                    className="ml-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
-                    title="Salin SHA-256 Hash"
-                  >
-                    {copiedKey === "hash" ? (
-                      <Check className="h-3 w-3 text-emerald-600" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <span className="text-slate-400 font-sans">IPFS:</span>
-                  <span>{displayIpfs}</span>
-                  {isPopulated && rawIpfs && !rawIpfs.includes("0000") ? (
-                    <a
-                      href={`https://gateway.pinata.cloud/ipfs/${rawIpfs}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-0.5 text-slate-400 hover:text-[#185adb]"
-                      title="Buka Snapshot IPFS"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : null}
-                </div>
-
-                {displayTx && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-slate-400 font-sans">Tx:</span>
-                    <span>{displayTx}</span>
-                    <a
-                      href={`https://sepolia.basescan.org/tx/${rawTx}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-0.5 text-slate-400 hover:text-[#185adb]"
-                      title="Lihat di BaseScan"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                )}
-              </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+              Dipublikasikan: {publishedDateText}
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ================= 2. BAGIAN NARASI ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100 w-full" aria-labelledby="section-narasi">
-        <div className="mb-3">
-          <h3
-            id="section-narasi"
-            className="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
-          >
+        {/* Baris Bawah Card 1: Bukti Audit On-Chain (Base L2) Terintegrasi Penuh */}
+        <div className="mt-6 pt-5 border-t border-slate-100 text-xs">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
+            Bukti Kriptografis & On-Chain (Base Sepolia L2)
+          </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-slate-700">
+            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+              <span className="text-slate-400 font-sans font-medium">Hash:</span>
+              <span>{displayHash}</span>
+              <button
+                type="button"
+                onClick={() => handleCopy("hash", rawHash)}
+                disabled={!isPopulated}
+                className="ml-1 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+                title="Salin SHA-256 Hash"
+              >
+                {copiedKey === "hash" ? (
+                  <Check className="h-3 w-3 text-emerald-600" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+              <span className="text-slate-400 font-sans font-medium">IPFS:</span>
+              <span>{displayIpfs}</span>
+              {isPopulated && rawIpfs && !rawIpfs.includes("0000") ? (
+                <a
+                  href={`https://gateway.pinata.cloud/ipfs/${rawIpfs}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-0.5 text-slate-400 hover:text-[#185adb]"
+                  title="Buka Snapshot IPFS"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : null}
+            </div>
+
+            {displayTx && (
+              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+                <span className="text-slate-400 font-sans font-medium">Tx:</span>
+                <span>{displayTx}</span>
+                <a
+                  href={`https://sepolia.basescan.org/tx/${rawTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-0.5 text-slate-400 hover:text-[#185adb]"
+                  title="Lihat di BaseScan"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* KARTU 2: NARASI (BERITA YANG BEREDAR)                           */}
+      {/* ============================================================== */}
+      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+        <div className="mb-4">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[#185adb]" />
             Narasi
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -427,8 +431,8 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </p>
         </div>
 
-        {/* Narrative Quote Block */}
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 sm:p-6 border-l-4 border-l-slate-400 w-full">
+        {/* Narrative Quote Block (break-words prevents word splitting) */}
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 sm:p-6 border-l-4 border-l-slate-400">
           <p
             className={`text-sm sm:text-base leading-relaxed break-words ${
               isPopulated ? "text-slate-800 font-normal" : "text-slate-400 italic"
@@ -452,15 +456,15 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </div>
           )}
         </div>
-      </section>
+      </div>
 
-      {/* ================= 3. BAGIAN PENJELASAN ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100 w-full" aria-labelledby="section-penjelasan">
+      {/* ============================================================== */}
+      {/* KARTU 3: PENJELASAN (INVESTIGASI & ANALISIS FAKTUAL)            */}
+      {/* ============================================================== */}
+      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
         <div className="mb-4">
-          <h3
-            id="section-penjelasan"
-            className="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
-          >
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <FileText className="h-4 w-4 text-[#185adb]" />
             Penjelasan
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -468,7 +472,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </p>
         </div>
 
-        <div className="space-y-4 w-full">
+        <div className="space-y-5">
           {/* Main Explanation Paragraph (break-words keeps normal words intact) */}
           <p
             className={`text-sm sm:text-base leading-relaxed break-words ${
@@ -479,27 +483,27 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </p>
 
           {/* Numbered Investigative Findings */}
-          <div className="mt-5 pt-4 border-t border-slate-100 space-y-3.5">
+          <div className="pt-4 border-t border-slate-100 space-y-3.5">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Poin Kunci Penelusuran Fakta:
             </h4>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
               {displayFindings.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3.5 rounded-xl border border-slate-100 bg-slate-50/40 p-3.5 text-xs sm:text-sm"
+                  className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 text-xs sm:text-sm"
                 >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white border border-slate-200 font-mono text-xs font-bold text-slate-600 shrink-0 mt-0.5">
-                    {item.num}
-                  </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white border border-slate-200 font-mono text-[11px] font-bold text-slate-600 shrink-0">
+                      {item.num}
+                    </span>
                     <h5 className="font-bold text-slate-900 leading-snug break-words">
                       {item.title}
                     </h5>
-                    <p className="text-slate-600 leading-relaxed mt-0.5 break-words">
-                      {item.desc}
-                    </p>
                   </div>
+                  <p className="text-slate-600 leading-relaxed text-xs break-words">
+                    {item.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -516,15 +520,15 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </div>
           )}
         </div>
-      </section>
+      </div>
 
-      {/* ================= 4. BAGIAN KESIMPULAN ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100 w-full" aria-labelledby="section-kesimpulan">
+      {/* ============================================================== */}
+      {/* KARTU 4: KESIMPULAN (VERDICT AKHIR)                             */}
+      {/* ============================================================== */}
+      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
         <div className="mb-3">
-          <h3
-            id="section-kesimpulan"
-            className="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
-          >
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-[#185adb]" />
             Kesimpulan
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -536,12 +540,12 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
         <div
           className={`rounded-2xl border p-5 sm:p-6 transition-all w-full ${
             isHoax
-              ? "bg-rose-50/50 border-rose-200/90 text-rose-950"
+              ? "bg-rose-50/60 border-rose-200 text-rose-950"
               : isMeragukan
-              ? "bg-amber-50/50 border-amber-200/90 text-amber-950"
+              ? "bg-amber-50/60 border-amber-200 text-amber-950"
               : isBenar
-              ? "bg-emerald-50/50 border-emerald-200/90 text-emerald-950"
-              : "bg-slate-50/70 border-slate-200 text-slate-600"
+              ? "bg-emerald-50/60 border-emerald-200 text-emerald-950"
+              : "bg-slate-50 border-slate-200 text-slate-600"
           }`}
         >
           <div className="flex items-start gap-3.5">
@@ -566,7 +570,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </p>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

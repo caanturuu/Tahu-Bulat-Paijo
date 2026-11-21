@@ -6,13 +6,10 @@ import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { SettingsModal } from "@/components/SettingsModal";
-import {
-  ConsortiumFactCheckIcon,
-  OnChainAuditIcon,
-  RevisionDiffIcon,
-} from "@/components/FeatureIcons";
+import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult } from "@/types";
 import {
+  Search,
   Plus,
   ArrowRight,
   Loader2,
@@ -30,6 +27,11 @@ import {
   Sparkles,
   Check,
   X,
+  Globe,
+  Zap,
+  GitCompare,
+  Lock,
+  ChevronRight,
 } from "lucide-react";
 
 // 10 Curated Indonesian News Context Backgrounds
@@ -96,152 +98,100 @@ const INDONESIA_NEWS_BACKGROUNDS = [
   },
 ];
 
-// 6 Curated Hoax News Items matching reference design
-const HOAX_NEWS_ITEMS = [
-  {
-    id: 1,
-    image: "/hoax-news/hoax-1.jpg",
-    title: "Manipulasi Berkas Ijazah & Dokumen Persidangan",
-    tag: "[HOAX]",
-    date: "08 Nov 2026",
-    claim: "Klaim ijazah dan berkas persidangan palsu yang beredar luas di media sosial.",
-  },
-  {
-    id: 2,
-    image: "/hoax-news/hoax-2.jpg",
-    title: "Titik Api Karhutla Sengaja Dibakar Secara Terkoordinasi",
-    tag: "[HOAX]",
-    date: "08 Nov 2026",
-    claim: "Narasi bahwa kebakaran hutan sengaja disulut serentak oleh kelompok tertentu.",
-  },
-  {
-    id: 3,
-    image: "/hoax-news/hoax-3.jpg",
-    title: "Rekaman Suara Instruksi Rahasia Bocor ke Publik",
-    tag: "[HOAX]",
-    date: "07 Nov 2026",
-    claim: "Audio rekayasa kecerdasan buatan (deepfake audio) pejabat tinggi kementerian.",
-  },
-  {
-    id: 4,
-    image: "/hoax-news/hoax-4.jpg",
-    title: "Formulir C1 Plano Tanda Tangan Ganda di TPS 04",
-    tag: "[HOAX]",
-    date: "07 Nov 2026",
-    claim: "Foto manipulasi hasil scan lembar penghitungan suara pilkada serentak.",
-  },
-  {
-    id: 5,
-    image: "/hoax-news/hoax-5.jpg",
-    title: "Rebusan Daun Pepaya Sembuhkan Diabetes 3 Hari",
-    tag: "[HOAX]",
-    date: "06 Nov 2026",
-    claim: "Informasi kesehatan tanpa konfirmasi uji klinis dari Ikatan Dokter Indonesia.",
-  },
-  {
-    id: 6,
-    image: "/hoax-news/hoax-6.jpg",
-    title: "Tautan Pendaftaran Bansos Tunai Kemensos Rp 5 Juta",
-    tag: "[HOAX]",
-    date: "06 Nov 2026",
-    claim: "Situs tiruan (phising) yang meminta data KTP dan nomor rekening korban.",
-  },
-];
+// 15 Placeholder slots for Hoax News (Dummy data removed)
+const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  tag: "[KATEGORI / HOAKS]",
+  title: `[Slot Judul Berita Hoaks Terdeteksi #${i + 1}]`,
+  date: "Menunggu data API",
+}));
 
-// Sidebar Trending Hoax Items
-const POPULAR_HOAX_ITEMS = [
+// Placeholder slots for Popular Trending Hoax items
+const POPULAR_HOAX_PLACEHOLDERS = [
   {
     rank: 1,
-    title: "Deepfake Audio Pidato Pejabat Terkait Kenaikan Pajak PPN 12%...",
-    views: "54.2k dibaca",
-    image: "/hoax-news/pop-1.jpg",
+    title: "[Menunggu data agregasi artikel terpopuler #1]",
+    views: "-- dibaca",
   },
   {
     rank: 2,
-    title: "Tautan Pendaftaran Bansos Tunai BSU Rp 5.000.000 Lewat Bot...",
-    views: "42.8k dibaca",
-    image: "/hoax-news/pop-2.jpg",
+    title: "[Menunggu data agregasi artikel terpopuler #2]",
+    views: "-- dibaca",
   },
   {
     rank: 3,
-    title: "Klaim Rekrutmen ASN Kemenkes Tanpa Tes untuk Tenaga Honorer...",
-    views: "31.5k dibaca",
-    image: "/hoax-news/hoax-3.jpg",
+    title: "[Menunggu data agregasi artikel terpopuler #3]",
+    views: "-- dibaca",
   },
 ];
 
-// Mock verification results for demonstration
-const SAMPLE_VERIFICATION_RESULT: VerificationResult = {
-  url: "https://turnbackhoax.id/contoh-klaim-subsidi-energi",
-  title: "Klaim Subsidi Energi Dicabut Total Mulai Akhir Bulan Ini",
-  publisher: "TurnBackHoax.id (MAFINDO)",
-  publishedDate: "2026-11-20T10:00:00Z",
-  articleHash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  credibilityScore: 18,
-  status: "HOAX",
+// Placeholder verification result for diff demo (Neutral template, no fake news)
+const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
+  url: "https://contoh-portal-berita.id/artikel-contoh",
+  title: "[Contoh Demo Deteksi Revisi Redaksi]",
+  publisher: "Portal Berita Contoh",
+  publishedDate: "2026-11-21T08:00:00Z",
+  articleHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+  credibilityScore: 75,
+  status: "QUESTIONABLE",
   summary:
-    "Klaim bahwa subsidi energi dicabut secara total telah dibantah oleh siaran pers resmi Kementerian ESDM dan Kementerian Keuangan. Narasi yang beredar di media sosial memotong pernyataan pejabat dan menyebarkan judul provokatif tanpa dasar data APBN sebenarnya.",
+    "Placeholder demonstrasi pelacakan revisi teks (Diff Viewer). Sistem mendeteksi perubahan kalimat pada artikel tanpa disertai ralat resmi dari pihak redaksi.",
   keyFindings: [
-    "Pemerintah tidak pernah mengeluarkan rilis pencabutan subsidi energi total per akhir bulan.",
-    "Alokasi APBN 2026 membuktikan anggaran perlindungan subsidi energi masyarakat tetap aman.",
-    "Penyebaran dilakukan oleh akun tidak terverifikasi dengan tangkapan layar hasil manipulasi.",
+    "Versi awal memuat pernyataan awal sebelum disunting.",
+    "Versi pembaruan memuat perubahan kata tanpa catatan ralat redaksi.",
+    "Perbandingan visual disajikan dengan penanda merah (teks dihapus) dan hijau (teks ditambahkan).",
   ],
   claimsReview: [
     {
-      claim: "Pemerintah mencabut subsidi energi secara total pada akhir bulan ini.",
-      claimant: "Postingan Viral Media Sosial",
-      claimDate: "2026-11-19",
-      reviewPublisher: "MAFINDO (TurnBackHoax.id)",
-      reviewUrl: "https://turnbackhoax.id",
-      rating: "SALAH / FABRIKASI",
-    },
-    {
-      claim: "Anggaran subsidi BBM dihapus dari APBN 2026.",
-      claimant: "Akun Media Sosial Anonim",
-      claimDate: "2026-11-18",
-      reviewPublisher: "Cek Fakta Kompas.com",
-      reviewUrl: "https://kompas.com/cekfakta",
-      rating: "MISLEADING / MENYESATKAN",
+      claim: "Demonstrasi pelacakan perubahan kata pada artikel berita.",
+      claimant: "Redaksi Media Contoh",
+      claimDate: "2026-11-21",
+      reviewPublisher: "VeritasChain Diff Engine v2",
+      reviewUrl: "#",
+      rating: "DIREVISI DIAM-DIAM",
     },
   ],
-  ipfsCid: "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
-  txHash: "0x4a9b8f3d12c8a7e4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8",
+  ipfsCid: "QmPlaceholderDiffViewerDemoCID",
+  txHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   network: "Base Sepolia (Layer-2)",
-  timestamp: "2026-11-21T04:30:00Z",
-  hasRevisions: false,
+  timestamp: "2026-11-21T08:00:00Z",
+  hasRevisions: true,
+  diffSummary: {
+    addedWords: 5,
+    removedWords: 4,
+    diffHtml:
+      'Artikel ini memuat contoh kalimat dengan <span class="bg-rose-100 text-rose-800 line-through dark:bg-rose-950/70 dark:text-rose-300">klaim teks awal dihapus</span> digantikan menjadi <span class="bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-950/70 dark:text-emerald-300">penyuntingan teks baru ditambahkan</span> untuk mendemonstrasikan fitur pelacakan revisi.',
+  },
 };
 
-// Audit History sample records
-const AUDIT_HISTORY = [
+// Placeholder Audit History records (Dummy transactions removed)
+const AUDIT_HISTORY_PLACEHOLDERS = [
   {
-    id: "tx-001",
-    title: "Penyesuaian Skema Penyaluran Subsidi Energi Tepat Sasaran",
-    score: 84,
-    status: "VALID",
-    hash: "0x8f2d...3a1c",
-    ipfsCid: "QmXo...6uco",
-    date: "21 Nov 2026 10:20",
-    tx: "0x4a9b...f7a8",
+    id: "tx-slot-001",
+    title: "[Slot Riwayat Audit On-Chain #1]",
+    score: "--/100",
+    status: "MENUNGGU",
+    hash: "0x0000...0000",
+    date: "--",
+    tx: "Menunggu blok",
   },
   {
-    id: "tx-002",
-    title: "Klaim Subsidi Energi Dicabut Total Mulai Akhir Bulan Ini",
-    score: 18,
-    status: "HOAX",
-    hash: "0xe3b0...b855",
-    ipfsCid: "QmYp...9xaz",
-    date: "20 Nov 2026 15:45",
-    tx: "0x9c1d...3e2a",
+    id: "tx-slot-002",
+    title: "[Slot Riwayat Audit On-Chain #2]",
+    score: "--/100",
+    status: "MENUNGGU",
+    hash: "0x0000...0000",
+    date: "--",
+    tx: "Menunggu blok",
   },
   {
-    id: "tx-003",
-    title: "Rilis Resmi Hasil Evaluasi BKN Terkait Pendaftaran Formasi Teknis",
-    score: 92,
-    status: "VALID",
-    hash: "0x5d4e...11bb",
-    ipfsCid: "QmZ1...44tt",
-    date: "19 Nov 2026 09:12",
-    tx: "0x11cc...aa99",
+    id: "tx-slot-003",
+    title: "[Slot Riwayat Audit On-Chain #3]",
+    score: "--/100",
+    status: "MENUNGGU",
+    hash: "0x0000...0000",
+    date: "--",
+    tx: "Menunggu blok",
   },
 ];
 
@@ -249,6 +199,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
+  const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("Cek Fakta");
 
   // Rotating background state (15 seconds rotation)
@@ -257,8 +208,13 @@ export default function Home() {
   // Modals state
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedFeatureModal, setSelectedFeatureModal] = useState<"konsorsium" | "blockchain" | "diff" | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+
+  // Hoax news search & filter state
+  const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
+  const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
 
   // Hidden file input for plus button
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -277,22 +233,39 @@ export default function Home() {
     if (!query.trim() || isLoading) return;
 
     setIsLoading(true);
-    setResult(null);
+    setServerNotice(null);
 
     try {
-      // Simulate verification AI pipeline (FastAPI + Gemini 2.0 Flash)
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-      setResult(SAMPLE_VERIFICATION_RESULT);
+      // Connect to real FastAPI backend if running
+      const res = await fetch("http://localhost:8000/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query.trim() }),
+      });
 
-      // Scroll smoothly to results
+      if (res.ok) {
+        const liveData = await res.json();
+        setResult(liveData);
+      } else {
+        // Backend returned non-200, keep card empty (no dummy data)
+        setResult(null);
+        setServerNotice(
+          `Kueri diterima: "${query.trim()}". Backend merespons status ${res.status}. Data dummy telah dinonaktifkan, card tetap dalam kondisi kosong.`
+        );
+      }
+    } catch {
+      // Backend offline / not running: keep card empty (no dummy data)
+      setResult(null);
+      setServerNotice(
+        `Kueri diterima: "${query.trim()}". Server backend FastAPI (http://localhost:8000) belum aktif. Card tetap ditampilkan dalam kondisi kosong tanpa data dummy.`
+      );
+    } finally {
+      setIsLoading(false);
+      // Scroll smoothly to results section
       setTimeout(() => {
         const el = document.getElementById("verification-result-section");
         if (el) el.scrollIntoView({ behavior: "smooth" });
       }, 100);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -314,108 +287,221 @@ export default function Home() {
   };
 
   // Reusable Hoax News Section (matching uploaded reference)
-  const renderHoaxNewsSection = () => (
-    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="font-serif text-2xl sm:text-3xl md:text-[34px] font-bold text-slate-900 dark:text-white tracking-tight">
-          Berita Hoax Terkini
-        </h2>
-        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
-          Kumpulan kabar keliru yang viral di media sosial, lengkap dengan penelusuran fakta dan bukti aslinya.
-        </p>
-      </div>
+  const renderHoaxNewsSection = () => {
+    const filteredHoaxPlaceholders = HOAX_NEWS_PLACEHOLDERS.filter((item) => {
+      const q = hoaxSearchQuery.toLowerCase().trim();
+      const matchesQuery =
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        item.tag.toLowerCase().includes(q) ||
+        item.id.toString() === q.replace("#", "");
 
-      {/* Main Grid: 8 Cols Cards + 4 Cols Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: 6 Hoax Cards */}
-        <div className="lg:col-span-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-            {HOAX_NEWS_ITEMS.map((item) => (
-              <div
-                key={item.id}
-                className="group flex flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white p-3.5 shadow-xs hover:shadow-xl hover:border-blue-200 dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-300"
-              >
-                <div>
-                  {/* Thumbnail Image */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-zinc-800">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+      const matchesCat =
+        selectedHoaxCategory === "Semua" ||
+        item.tag.toLowerCase().includes(selectedHoaxCategory.toLowerCase());
 
-                  {/* Title & Tag */}
-                  <div className="mt-3.5">
-                    <span className="font-bold text-xs uppercase tracking-tight text-rose-600 dark:text-rose-400">
-                      {item.tag}
-                    </span>
-                    <h3 className="mt-1 font-bold text-xs sm:text-sm text-slate-900 dark:text-zinc-100 line-clamp-2 leading-snug group-hover:text-[#185adb] dark:group-hover:text-blue-400 transition-colors">
-                      {item.title}
-                    </h3>
-                  </div>
+      return matchesQuery && matchesCat;
+    });
+
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Header */}
+        <div className="mb-8 space-y-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Berita Hoax Terkini
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+              Tampilan placeholder agregasi kabar keliru yang viral. Data live akan disinkronkan otomatis dari konsorsium jurnalisme resmi.
+            </p>
+          </div>
+
+          {/* Search Bar & Category Filter */}
+          <div className="space-y-3 max-w-3xl">
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="relative flex-1 flex items-center rounded-2xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-2xs transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex h-9 w-9 items-center justify-center text-slate-400 dark:text-zinc-500 shrink-0">
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                 </div>
-
-                {/* Footer Info */}
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                  <span className="text-slate-400 dark:text-zinc-500 font-medium">
-                    {item.date}
-                  </span>
+                <input
+                  type="text"
+                  value={hoaxSearchQuery}
+                  onChange={(e) => setHoaxSearchQuery(e.target.value)}
+                  placeholder="Cari arsip berita hoaks, topik, atau kata kunci..."
+                  className="w-full bg-transparent px-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none dark:text-zinc-100 dark:placeholder-zinc-500"
+                />
+                {hoaxSearchQuery && (
                   <button
-                    onClick={() => handleCheckHoax(item.title)}
-                    className="font-semibold text-[#185adb] dark:text-blue-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    type="button"
+                    onClick={() => setHoaxSearchQuery("")}
+                    className="mr-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                    title="Hapus pencarian"
                   >
-                    Cek Fakta →
+                    <X className="h-4 w-4" strokeWidth={1.75} />
                   </button>
-                </div>
+                )}
               </div>
-            ))}
+
+              <button
+                type="button"
+                className="flex items-center justify-center gap-1.5 rounded-2xl bg-[#185adb] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all shrink-0"
+              >
+                <Search className="h-4 w-4" strokeWidth={2} />
+                <span>Cari</span>
+              </button>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+              <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 mr-1 shrink-0">
+                Kategori:
+              </span>
+              {["Semua", "Politik", "Kesehatan", "Finansial", "Sosial", "Teknologi"].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedHoaxCategory(cat)}
+                  className={`rounded-full px-3 py-1 font-medium transition-colors shrink-0 text-xs ${
+                    selectedHoaxCategory === cat
+                      ? "bg-[#185adb] text-white shadow-2xs"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Sidebar */}
+        {/* Main Grid: 8 Cols Cards + 4 Cols Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: 15 Hoax Placeholder Cards */}
+          <div className="lg:col-span-8">
+            {filteredHoaxPlaceholders.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
+                <FileSearch className="mx-auto h-8 w-8 text-slate-300 dark:text-zinc-600 mb-2" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-slate-600 dark:text-zinc-400">
+                  Tidak ada slot berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHoaxSearchQuery("");
+                    setSelectedHoaxCategory("Semua");
+                  }}
+                  className="mt-3 text-xs font-semibold text-[#185adb] hover:underline"
+                >
+                  Reset pencarian
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                {filteredHoaxPlaceholders.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex flex-col justify-between rounded-[22px] border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                  >
+                    <div>
+                      {/* Thumbnail Image Placeholder */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
+                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
+                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                      </div>
+
+                      {/* Title & Tag Placeholder */}
+                      <div className="mt-3.5 space-y-1.5">
+                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                          {item.tag}
+                        </span>
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Footer Info Placeholder */}
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                      <span className="text-slate-400 dark:text-zinc-500 font-medium">
+                        {item.date}
+                      </span>
+                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
+                        Menunggu Data →
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination bar for 15 placeholder items */}
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {filteredHoaxPlaceholders.length}</strong> dari <strong>{HOAX_NEWS_PLACEHOLDERS.length}</strong> slot data kosong
+              </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 opacity-60 cursor-not-allowed dark:border-zinc-800"
+                >
+                  ← Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg bg-[#185adb] px-3 py-1.5 font-bold text-white shadow-xs"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                >
+                  Selanjutnya →
+                </button>
+              </div>
+            </div>
+          </div>
+
+        {/* Right Column: Sidebar Placeholders (Static / Non-sticky) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Card 1: Berita Terpopuler Saat Ini */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+          {/* Card 1: Berita Terpopuler Saat Ini (Placeholder) */}
+          <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
               Berita Terpopuler Saat Ini
             </h3>
             <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-5">
-              5 klaim berita & isu hoaks yang paling banyak dibaca dan diuji kebenarannya hari ini.
+              Slot agregasi otomatis isu hoaks yang paling banyak diakses oleh publik.
             </p>
 
             <div className="space-y-4">
-              {POPULAR_HOAX_ITEMS.map((pop) => (
-                <div key={pop.rank} className="flex items-center gap-3.5 group">
-                  <span className="text-xl font-extrabold text-[#185adb] dark:text-blue-400 w-5 shrink-0">
+              {POPULAR_HOAX_PLACEHOLDERS.map((pop) => (
+                <div key={pop.rank} className="flex items-center gap-3.5">
+                  <span className="text-xl font-extrabold text-slate-300 dark:text-zinc-600 w-5 shrink-0">
                     {pop.rank}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h4
-                      onClick={() => handleCheckHoax(pop.title)}
-                      className="font-bold text-xs text-slate-800 dark:text-zinc-200 line-clamp-2 leading-snug cursor-pointer group-hover:text-[#185adb] dark:group-hover:text-blue-400 transition-colors"
-                    >
+                    <h4 className="font-medium text-xs text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
                       {pop.title}
                     </h4>
-                    <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-500">
-                      {pop.views} •{" "}
-                      <span
-                        onClick={() => handleCheckHoax(pop.title)}
-                        className="font-semibold text-[#185adb] dark:text-blue-400 hover:underline cursor-pointer"
-                      >
-                        Cek Fakta →
-                      </span>
+                    <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-600">
+                      {pop.views} • <span>Menunggu Data</span>
                     </p>
                   </div>
-                  <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-zinc-800 shadow-2xs">
-                    <Image
-                      src={pop.image}
-                      alt={pop.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                  <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center text-slate-300 dark:text-zinc-600">
+                    <FileSearch className="h-5 w-5" strokeWidth={1.5} />
                   </div>
                 </div>
               ))}
@@ -439,9 +525,10 @@ export default function Home() {
       </div>
     </div>
   );
+};
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="min-h-[100dvh] flex flex-col bg-[#fbfbfb] text-slate-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
       {/* Hidden file input for OCR screenshot upload */}
       <input
         type="file"
@@ -480,11 +567,31 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)}
       />
 
+      {/* Feature Deep Dive Interactive Modal */}
+      <FeatureDetailModal
+        isOpen={selectedFeatureModal !== null}
+        onClose={() => setSelectedFeatureModal(null)}
+        type={selectedFeatureModal}
+        onSelectSampleQuery={(sampleQuery) => {
+          setQuery(sampleQuery);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onLoadDiffDemo={() => {
+          setResult(SAMPLE_DIFF_VERIFICATION_RESULT);
+          setTimeout(() => {
+            const el = document.getElementById("verification-result-section");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 100);
+        }}
+      />
+
       {/* ================= TAB 1: CEK FAKTA (DEFAULT) ================= */}
       {activeTab === "Cek Fakta" && (
         <>
-          {/* Hero Section with 10 Rotating Indonesian News Backgrounds (Every 15s) */}
-          <section className="relative w-full overflow-hidden bg-slate-900 min-h-[480px] sm:min-h-[560px] md:min-h-[620px] flex items-center justify-center">
+          {/* Hero Section with 10 Rotating Indonesian News Backgrounds (Every 15s) - Full Viewport Stability min-h-[100dvh] */}
+          <section className="relative w-full overflow-hidden bg-slate-900 min-h-[100dvh] flex flex-col items-center justify-center py-12 sm:py-20 lg:py-24">
             {/* 10 Layered Rotating Background Images with Smooth Crossfade */}
             <div className="absolute inset-0 z-0">
               {INDONESIA_NEWS_BACKGROUNDS.map((bg, idx) => (
@@ -508,13 +615,13 @@ export default function Home() {
               <div className="absolute inset-0 bg-white/10 backdrop-contrast-[1.05] z-2" />
 
               {/* Bottom gradient fade into page body */}
-              <div className="absolute bottom-0 inset-x-0 h-44 sm:h-56 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-zinc-950 dark:via-zinc-950/85 z-2" />
+              <div className="absolute bottom-0 inset-x-0 h-48 sm:h-72 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-zinc-950 dark:via-zinc-950/85 z-2" />
             </div>
 
             {/* Hero Main Content */}
-            <div className="relative z-10 mx-auto w-full max-w-4xl px-3 sm:px-6 pt-8 pb-16 sm:pt-12 sm:pb-24 text-center">
-              {/* Serif Headline (Fully Responsive across Phone & PC) */}
-              <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-bold text-[#1e293b] leading-[1.25] tracking-tight drop-shadow-xs dark:text-white px-2">
+            <div className="relative z-10 mx-auto w-full max-w-4xl px-3 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-32 lg:pt-20 lg:pb-40 text-center my-auto">
+              {/* Modern Sans Display Headline (Geist Sans Display Anti-Slop Discipline) */}
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-slate-900 leading-[1.18] tracking-tight drop-shadow-xs dark:text-white px-2">
                 Berita apa yang ingin
                 <br />
                 Anda periksa hari ini?
@@ -533,7 +640,7 @@ export default function Home() {
                     className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shrink-0 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     title="Unggah tangkapan layar berita"
                   >
-                    <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                   </button>
 
                   {/* Text Input */}
@@ -553,9 +660,9 @@ export default function Home() {
                     title="Periksa Sekarang"
                   >
                     {isLoading ? (
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" strokeWidth={1.75} />
                     ) : (
-                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                     )}
                   </button>
                 </form>
@@ -603,64 +710,54 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Display */}
-          {result && (
-            <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-6 sm:py-10">
-              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-zinc-800">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-white">
-                  <FileSearch className="h-5 w-5 text-[#185adb] dark:text-blue-400" />
+          {/* Verification Result Section: Always visible with Empty Card (Card Kosong) or Live Results */}
+          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-10 sm:py-16">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-zinc-800">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-white tracking-tight">
+                  <FileSearch className="h-5 w-5 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
                   Hasil Pemeriksaan Fakta & Audit Blockchain
                 </h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                  {result
+                    ? "Hasil analisis verifikasi AI dan pencatatan audit on-chain."
+                    : "Card kosong siap pakai. Masukkan tautan berita, unggah tangkapan layar, atau ketik informasi pada bilah pencarian di atas."}
+                </p>
+              </div>
+              {result && (
                 <button
-                  onClick={() => setResult(null)}
-                  className="text-xs text-slate-500 hover:text-slate-800 underline dark:text-zinc-400 dark:hover:text-zinc-200"
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setServerNotice(null);
+                  }}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-auto"
                 >
-                  Tutup Hasil
+                  Kembalikan ke Card Kosong
+                </button>
+              )}
+            </div>
+
+            {/* Server notice banner if backend is offline */}
+            {serverNotice && (
+              <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start justify-between gap-3 animate-in fade-in">
+                <div className="flex items-start gap-2.5">
+                  <span className="font-bold shrink-0 text-[#185adb] dark:text-blue-400">Info:</span>
+                  <span className="leading-relaxed">{serverNotice}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setServerNotice(null)}
+                  className="font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 shrink-0 cursor-pointer"
+                  title="Tutup pemberitahuan"
+                >
+                  ✕
                 </button>
               </div>
-              <ResultCard data={result} />
-            </section>
-          )}
+            )}
 
-          {/* Features Highlights Grid */}
-          <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-blue-900/40 dark:hover:shadow-black/40">
-                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-transparent p-2.5 ring-1 ring-blue-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-blue-500/20 group-hover:ring-blue-500/30 transition-all duration-300 dark:from-blue-500/20 dark:via-indigo-500/10 dark:ring-blue-400/25">
-                  <ConsortiumFactCheckIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#185adb] dark:group-hover:text-blue-400 transition-colors">
-                  Konsorsium Cek Fakta Resmi
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
-                  Terintegrasi langsung dengan database ClaimReview internasional dan nasional yang merangkum MAFINDO, Kompas, Tempo, Liputan6, dan AFP.
-                </p>
-              </div>
-
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-900/40 dark:hover:shadow-black/40">
-                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-2.5 ring-1 ring-emerald-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/20 group-hover:ring-emerald-500/30 transition-all duration-300 dark:from-emerald-500/20 dark:via-teal-500/10 dark:ring-emerald-400/25">
-                  <OnChainAuditIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  Audit On-Chain Permanen
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
-                  Hasil verifikasi dicatat secara permanen di blockchain Base Sepolia L2 tanpa biaya gas (gasless), sehingga bebas dari manipulasi pihak manapun.
-                </p>
-              </div>
-
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-amber-900/40 dark:hover:shadow-black/40">
-                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-2.5 ring-1 ring-amber-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/20 group-hover:ring-amber-500/30 transition-all duration-300 dark:from-amber-500/20 dark:via-orange-500/10 dark:ring-amber-400/25">
-                  <RevisionDiffIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                  Deteksi Revisi Diam-Diam
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
-                  Lacak artikel berita yang diedit atau dihapus klaimnya oleh media tanpa catatan redaksi melalui perbandingan visual teks (Diff Tracking).
-                </p>
-              </div>
-            </div>
+            {/* ResultCard: Displays Card Kosong when data is null, displays verified data when present */}
+            <ResultCard data={result} />
           </section>
         </>
       )}
@@ -674,7 +771,7 @@ export default function Home() {
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <History className="h-6 w-6 text-[#185adb] dark:text-blue-400" />
+                <History className="h-6 w-6 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
                 Riwayat Audit On-Chain (Base Sepolia)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
@@ -691,10 +788,16 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/90">
+            {/* Informative placeholder top banner */}
+            <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center gap-2">
+              <span className="font-semibold text-slate-600 dark:text-zinc-300">Tampilan Placeholder:</span>
+              <span>Belum ada transaksi audit on-chain permanen yang dicatat. Riwayat hash artikel dan IPFS CID akan otomatis terisi saat proses verifikasi berita dijalankan.</span>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+                <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
                   <tr>
                     <th className="p-3.5 sm:p-4">Judul Artikel</th>
                     <th className="p-3.5 sm:p-4">Skor AI</th>
@@ -705,46 +808,27 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
-                  {AUDIT_HISTORY.map((row) => (
+                  {AUDIT_HISTORY_PLACEHOLDERS.map((row) => (
                     <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="p-3.5 sm:p-4 font-medium text-slate-900 dark:text-white max-w-xs truncate">
+                      <td className="p-3.5 sm:p-4 font-medium text-slate-400 dark:text-zinc-500 max-w-xs truncate">
                         {row.title}
                       </td>
-                      <td className="p-3.5 sm:p-4 font-bold font-mono">
-                        {row.score}/100
+                      <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-400 dark:text-zinc-500">
+                        {row.score}
                       </td>
                       <td className="p-3.5 sm:p-4">
-                        {row.status === "VALID" ? (
-                          <span
-                            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 shadow-xs"
-                            title="Valid"
-                          >
-                            <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-                          </span>
-                        ) : (
-                          <span
-                            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 shadow-xs"
-                            title="Hoaks"
-                          >
-                            <X className="h-3.5 w-3.5 stroke-[2.5]" />
-                          </span>
-                        )}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
+                          {row.status}
+                        </span>
                       </td>
-                      <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-500 hidden sm:table-cell">
+                      <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-400 dark:text-zinc-500 hidden sm:table-cell">
                         {row.hash}
                       </td>
-                      <td className="p-3.5 sm:p-4 text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="p-3.5 sm:p-4 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
                         {row.date}
                       </td>
-                      <td className="p-3.5 sm:p-4">
-                        <a
-                          href={`https://sepolia.basescan.org/tx/${row.tx}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-[#185adb] dark:text-blue-400 hover:underline"
-                        >
-                          {row.tx}
-                        </a>
+                      <td className="p-3.5 sm:p-4 font-mono text-xs text-slate-400 dark:text-zinc-500">
+                        {row.tx}
                       </td>
                     </tr>
                   ))}
@@ -806,7 +890,7 @@ export default function Home() {
               <span>Tim Pengembang</span>
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-              Tahu Bulat PAIJO — Astra Polytechnic
+              Tahu Bulat PAIJO - Astra Polytechnic
             </h3>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
@@ -826,15 +910,227 @@ export default function Home() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-slate-100 bg-slate-50/70 py-8 text-center text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto max-w-6xl px-4 space-y-1">
-          <p className="font-semibold text-slate-700 dark:text-zinc-300">
-            VeritasChain © 2026
-          </p>
-          <p>
-            Proyek Pengembangan Tim <strong>Tahu Bulat PAIJO</strong> — Astra Polytechnic untuk HackSphere 2026.
-          </p>
+      {/* Footer (Matching Reference UI) */}
+      <footer className="mt-auto bg-[#070b14] text-slate-300 border-t border-slate-800/80 transition-colors">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+          {/* Main 3 Columns Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
+            {/* Column 1: Brand Logo, Description & Social Links */}
+            <div className="md:col-span-6 lg:col-span-5 space-y-4">
+              {/* Brand Logo */}
+              <div
+                className="flex items-center gap-2.5 cursor-pointer w-fit"
+                onClick={() => {
+                  setActiveTab("Cek Fakta");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                <div className="flex h-8 w-8 items-center justify-center">
+                  <svg
+                    className="h-7 w-7"
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M6 7L13.5 25.5L17.5 19.5L12 7H6Z" fill="#38bdf8" />
+                    <path
+                      d="M13.5 25.5L17.5 29.5L29 7H23L16 21.5L13.5 25.5Z"
+                      fill="#185adb"
+                    />
+                  </svg>
+                </div>
+                <span className="text-xl font-bold tracking-tight text-white">
+                  VeritasChain
+                </span>
+              </div>
+
+              {/* Bio / Description */}
+              <p className="text-xs sm:text-[13px] leading-relaxed text-slate-400 max-w-md">
+                VeritasChain adalah platform verifikasi disinformasi dan pelacakan perubahan artikel berita berbasis kecerdasan buatan multimodal dan konsensus terdesentralisasi on-chain.
+              </p>
+
+              {/* Social Media Buttons Row */}
+              <div className="flex items-center gap-2.5 pt-1">
+                {/* X / Twitter */}
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all shadow-xs"
+                  title="X (Twitter)"
+                >
+                  <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
+
+                {/* GitHub */}
+                <a
+                  href="https://github.com/caanturuu/Tahu-Bulat-Paijo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all shadow-xs"
+                  title="GitHub Repository"
+                >
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all shadow-xs"
+                  title="Instagram"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                  </svg>
+                </a>
+
+                {/* LinkedIn */}
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all shadow-xs"
+                  title="LinkedIn"
+                >
+                  <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                  </svg>
+                </a>
+
+                {/* Mail / Email */}
+                <a
+                  href="mailto:contact@veritaschain.id"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 hover:border-slate-700 transition-all shadow-xs"
+                  title="Email Kami"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="20" height="16" x="2" y="4" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Column 2: Fitur Utama */}
+            <div className="md:col-span-3 lg:col-span-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+                FITUR UTAMA
+              </h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Cek Fakta");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Cek Fakta Kilat
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Berita Hoaks");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Berita Hoaks Terkini
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Riwayat");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Riwayat Audit On-Chain
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Metodologi & Etika */}
+            <div className="md:col-span-3 lg:col-span-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+                METODOLOGI & ETIKA
+              </h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Tentang");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Cara Kerja & Metodologi AI
+                  </button>
+                </li>
+                <li>
+                  <a
+                    href="https://www.ifcncodeofprinciples.poynter.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    Standar Kode Etik IFCN
+                  </a>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("Tentang");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Kebijakan Hak Jawab & Koreksi
+                  </button>
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/caanturuu/Tahu-Bulat-Paijo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    Transparansi & Sumber Terbuka
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Sub-Footer Bar */}
+          <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p className="text-center sm:text-left">
+              © 2026 VeritasChain. Seluruh hak cipta dilindungi. • Dibangun di atas Ethereum Sepolia untuk Indonesia.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 font-medium cursor-pointer shrink-0"
+            >
+              Kembali ke Atas ↑
+            </button>
+          </div>
         </div>
       </footer>
     </div>

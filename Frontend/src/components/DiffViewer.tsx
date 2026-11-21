@@ -21,13 +21,13 @@ export function DiffViewer({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-amber-200/80 pb-3 dark:border-amber-900/40">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 shrink-0">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
             <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
               Terdeteksi Revisi Konten Artikel
               <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 dark:bg-amber-500/20 dark:text-amber-300">
-                MODIFIED
+                DIREVISI
               </span>
             </h4>
             <p className="text-xs text-slate-600 dark:text-zinc-400">

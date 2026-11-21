@@ -169,7 +169,8 @@ export default function Home() {
 
   const isUserAuthenticated = authenticated;
   const walletAddress = resolveWalletAddress(user, wallets);
-  const currentUserAddress = walletAddress || user?.google?.email || user?.email?.address || "";
+  const userEmailDisplay = user?.google?.email || user?.email?.address || "";
+  const currentUserAddress = walletAddress || userEmailDisplay;
 
   useEffect(() => {
     if (!authenticated) {
@@ -829,7 +830,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                    Akun: {shortenHash(currentUserAddress, 8)}
+                    Akun: {userEmailDisplay || shortenHash(currentUserAddress, 8)}
                   </span>
                   <span>•</span>
                   <span>

@@ -6,6 +6,11 @@ import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { SettingsModal } from "@/components/SettingsModal";
+import {
+  ConsortiumFactCheckIcon,
+  OnChainAuditIcon,
+  RevisionDiffIcon,
+} from "@/components/FeatureIcons";
 import { VerificationResult } from "@/types";
 import {
   Plus,
@@ -620,11 +625,11 @@ export default function Home() {
           {/* Features Highlights Grid */}
           <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-              <div className="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all hover:shadow-md hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-blue-50 text-[#185adb] mb-3 sm:mb-4 dark:bg-blue-950/40 dark:text-blue-400">
-                  <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-blue-900/40 dark:hover:shadow-black/40">
+                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-transparent p-2.5 ring-1 ring-blue-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-blue-500/20 group-hover:ring-blue-500/30 transition-all duration-300 dark:from-blue-500/20 dark:via-indigo-500/10 dark:ring-blue-400/25">
+                  <ConsortiumFactCheckIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
                 </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#185adb] dark:group-hover:text-blue-400 transition-colors">
                   Konsorsium Cek Fakta Resmi
                 </h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
@@ -632,11 +637,11 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all hover:shadow-md hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 mb-3 sm:mb-4 dark:bg-emerald-950/40 dark:text-emerald-400">
-                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-900/40 dark:hover:shadow-black/40">
+                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-2.5 ring-1 ring-emerald-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/20 group-hover:ring-emerald-500/30 transition-all duration-300 dark:from-emerald-500/20 dark:via-teal-500/10 dark:ring-emerald-400/25">
+                  <OnChainAuditIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
                 </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   Audit On-Chain Permanen
                 </h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
@@ -644,11 +649,11 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all hover:shadow-md hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-3 sm:mb-4 dark:bg-amber-950/40 dark:text-amber-400">
-                  <History className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/5 hover:border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-amber-900/40 dark:hover:shadow-black/40">
+                <div className="relative mb-3.5 sm:mb-4 flex h-13 w-13 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-2.5 ring-1 ring-amber-500/15 shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/20 group-hover:ring-amber-500/30 transition-all duration-300 dark:from-amber-500/20 dark:via-orange-500/10 dark:ring-amber-400/25">
+                  <RevisionDiffIcon className="h-9 w-9 sm:h-10 sm:w-10 transition-transform duration-300 group-hover:scale-110 drop-shadow-xs" />
                 </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                   Deteksi Revisi Diam-Diam
                 </h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">

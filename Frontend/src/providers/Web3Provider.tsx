@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 interface Web3ProviderProps {
   children: React.ReactNode;
@@ -29,8 +29,9 @@ export function Web3Provider({ children }: Web3ProviderProps) {
           accentColor: "#2563eb",
           logo: "/globe.svg",
         },
-        defaultChain: baseSepolia,
-        supportedChains: [baseSepolia],
+        loginMethods: ["google", "email"],
+        defaultChain: sepolia,
+        supportedChains: [sepolia],
         embeddedWallets: {
           ethereum: {
             createOnLogin: "users-without-wallets",

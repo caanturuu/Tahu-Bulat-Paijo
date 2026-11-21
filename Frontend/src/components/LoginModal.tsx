@@ -64,7 +64,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
   const handleGoogleLogin = () => {
     try {
-      if (login) login();
+      if (login) login({ loginMethods: ["google"] });
       onClose();
     } catch (err) {
       console.warn("Google login:", err);

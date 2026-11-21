@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
   Wallet,
   LogOut,
@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   ExternalLink,
 } from "lucide-react";
-import { shortenAddress } from "@/lib/utils";
+import { shortenAddress, resolveWalletAddress } from "@/lib/utils";
 
 interface NavbarProps {
   activeTab?: string;
@@ -30,6 +30,7 @@ export function Navbar({
   onLogout,
 }: NavbarProps) {
   const { authenticated, user, logout: privyLogout } = usePrivy();
+  const { wallets } = useWallets();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,10 +59,11 @@ export function Navbar({
   };
 
   const isUserAuthenticated = authenticated || isLoggedIn;
-  const userAddress = user?.wallet?.address;
+  const userAddress = resolveWalletAddress(user, wallets);
+  const realEmail = user?.google?.email || user?.email?.address || userEmail;
   const displayIdentity = userAddress
     ? shortenAddress(userAddress)
-    : userEmail || "Validator Terverifikasi";
+    : realEmail || "Menyiapkan Wallet...";
 
   const handleLogout = () => {
     if (authenticated) {

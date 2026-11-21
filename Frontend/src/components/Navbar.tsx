@@ -130,7 +130,7 @@ export function Navbar({
           {/* Masuk / User Status Button */}
           {isUserAuthenticated ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
+              <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
                 <Wallet className="h-3.5 w-3.5 text-[#185adb] dark:text-blue-400 shrink-0" strokeWidth={1.75} />
                 <span className="font-mono text-[10px] sm:text-[11px] truncate max-w-[90px] sm:max-w-none">
                   {displayIdentity}
@@ -138,7 +138,7 @@ export function Navbar({
               </div>
               <button
                 onClick={handleLogout}
-                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
                 title="Keluar"
               >
                 <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.75} />
@@ -147,7 +147,7 @@ export function Navbar({
           ) : (
             <button
               onClick={onOpenLogin}
-              className="rounded-full bg-[#185adb] px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all shrink-0"
+              className="rounded-lg bg-[#185adb] px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all shrink-0"
             >
               Masuk
             </button>

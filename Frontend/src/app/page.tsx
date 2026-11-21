@@ -385,7 +385,7 @@ export default function Home() {
                   key={cat}
                   type="button"
                   onClick={() => setSelectedHoaxCategory(cat)}
-                  className={`rounded-full px-3 py-1 font-medium transition-colors shrink-0 text-xs ${
+                  className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs ${
                     selectedHoaxCategory === cat
                       ? "bg-[#185adb] text-white shadow-2xs"
                       : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
@@ -436,7 +436,7 @@ export default function Home() {
                       <Link
                         key={item.id}
                         href={`/berita-hoax/${item.id}`}
-                        className="group flex flex-col justify-between rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                        className="group flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
                       >
                         <div>
                           {/* Thumbnail Image */}
@@ -478,7 +478,7 @@ export default function Home() {
                   filteredHoaxPlaceholders.map((item) => (
                     <div
                       key={item.id}
-                      className="group flex flex-col justify-between rounded-[22px] border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                      className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
                     >
                       <div>
                         {/* Thumbnail Image Placeholder */}
@@ -676,13 +676,13 @@ export default function Home() {
               <div className="mt-6 sm:mt-10 mx-auto w-full max-w-2xl px-1 sm:px-0">
                 <form
                   onSubmit={handleSubmit}
-                  className="relative flex items-center rounded-full bg-white p-1.5 sm:p-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-slate-100/90 transition-all hover:shadow-[0_16px_50px_rgba(0,0,0,0.16)] dark:bg-zinc-900 dark:border-zinc-800"
+                  className="relative flex items-center rounded-lg bg-white p-1.5 sm:p-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-slate-100/90 transition-all hover:shadow-[0_16px_50px_rgba(0,0,0,0.16)] dark:bg-zinc-900 dark:border-zinc-800"
                 >
                   {/* Plus Button for screenshot upload */}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shrink-0 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                    className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shrink-0 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     title="Unggah tangkapan layar berita"
                   >
                     <Plus className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
@@ -701,7 +701,7 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-[#185adb] text-white shadow-md shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all shrink-0 disabled:opacity-70"
+                    className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg bg-[#185adb] text-white shadow-md shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all shrink-0 disabled:opacity-70"
                     title="Periksa Sekarang"
                   >
                     {isLoading ? (

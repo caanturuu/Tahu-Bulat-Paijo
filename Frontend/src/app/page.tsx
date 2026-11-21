@@ -139,6 +139,27 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
 };
 
 
+// Resilient thumbnail component with auto-fallback on load error
+function ArticleThumbnail({ src, title }: { src?: string; title: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (!src || hasError) {
+    return <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={title || "Gambar artikel hoaks"}
+      fill
+      className="object-cover group-hover:scale-105 transition-transform duration-300"
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      unoptimized
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 export default function Home() {
   const { authenticated, user } = usePrivy();
   const [query, setQuery] = useState("");
@@ -446,18 +467,7 @@ export default function Home() {
                     <div>
                       {/* Thumbnail Image */}
                       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                        {item.image_url ? (
-                          <Image
-                            src={item.image_url}
-                            alt={item.title || "Gambar artikel hoaks"}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            unoptimized
-                          />
-                        ) : (
-                          <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
-                        )}
+                        <ArticleThumbnail src={item.image_url} title={item.title} />
                       </div>
 
                       {/* Title & Tag */}

@@ -553,7 +553,7 @@ REAL_HOAX_ARTICLES = [
     {
         "title": "Beredar Kontak WhatsApp CS DANA Palsu Meminta PIN untuk Membuka Akun Terbekukan",
         "category": "Finansial",
-        "image_url": "https://images.unsplash.com/photo-1556742049-0a67e557224f?w=600&auto=format&fit=crop",
+        "image_url": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&auto=format&fit=crop",
         "source_url": "https://turnbackhoax.id/2023/08/penipuan-customer-care-dana-minta-pin",
         "views_count": 6240,
         "credibility_score": 0,
@@ -613,7 +613,7 @@ REAL_HOAX_ARTICLES = [
     {
         "title": "Kabar Hoaks Salinan Putusan MA Membatalkan Seluruh Ijazah Perguruan Tinggi Pejabat Publik",
         "category": "Politik",
-        "image_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop",
+        "image_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop",
         "source_url": "https://turnbackhoax.id/2024/05/hoaks-putusan-ma-ijazah-pejabat",
         "views_count": 5880,
         "credibility_score": 0,

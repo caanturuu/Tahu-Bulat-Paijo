@@ -7,7 +7,6 @@ import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult } from "@/types";
-import { simulateNewsValidation } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -117,45 +116,6 @@ export interface PopularHoaxItem {
   image?: string;
 }
 
-// Placeholder verification result for diff demo (Neutral template, no fake news)
-const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
-  url: "https://contoh-portal-berita.id/artikel-contoh",
-  title: "[Contoh Demo Deteksi Revisi Redaksi]",
-  publisher: "Portal Berita Contoh",
-  publishedDate: "2026-11-21T08:00:00Z",
-  articleHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  credibilityScore: 75,
-  status: "QUESTIONABLE",
-  summary:
-    "Placeholder demonstrasi pelacakan revisi teks (Diff Viewer). Sistem mendeteksi perubahan kalimat pada artikel tanpa disertai ralat resmi dari pihak redaksi.",
-  keyFindings: [
-    "Versi awal memuat pernyataan awal sebelum disunting.",
-    "Versi pembaruan memuat perubahan kata tanpa catatan ralat redaksi.",
-    "Perbandingan visual disajikan dengan penanda merah (teks dihapus) dan hijau (teks ditambahkan).",
-  ],
-  claimsReview: [
-    {
-      claim: "Demonstrasi pelacakan perubahan kata pada artikel berita.",
-      claimant: "Redaksi Media Contoh",
-      claimDate: "2026-11-21",
-      reviewPublisher: "VeritasChain Diff Engine v2",
-      reviewUrl: "#",
-      rating: "DIREVISI DIAM-DIAM",
-    },
-  ],
-  ipfsCid: "QmPlaceholderDiffViewerDemoCID",
-  txHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  network: "Base Sepolia (Layer-2)",
-  timestamp: "2026-11-21T08:00:00Z",
-  hasRevisions: true,
-  diffSummary: {
-    addedWords: 5,
-    removedWords: 4,
-    diffHtml:
-      'Artikel ini memuat contoh kalimat dengan <span class="bg-rose-100 text-rose-800 line-through dark:bg-rose-950/70 dark:text-rose-300">klaim teks awal dihapus</span> digantikan menjadi <span class="bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-950/70 dark:text-emerald-300">penyuntingan teks baru ditambahkan</span> untuk mendemonstrasikan fitur pelacakan revisi.',
-  },
-};
-
 // Audit History record type
 interface AuditHistoryRecord {
   id: string;
@@ -257,6 +217,7 @@ export default function Home() {
       if (res.ok) {
         const liveData = await res.json();
         setResult(liveData);
+        setServerNotice(null);
         setAuditHistory((prev) => [
           {
             id: `audit-${Date.now()}`,
@@ -270,46 +231,15 @@ export default function Home() {
           ...prev,
         ]);
       } else {
-        const simulated = simulateNewsValidation(query.trim());
-        setResult(simulated);
-        setServerNotice(
-          "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
-        );
-        setAuditHistory((prev) => [
-          {
-            id: `audit-${Date.now()}`,
-            title: query.trim(),
-            score: `${simulated.credibilityScore}/100`,
-            status: simulated.claimsReview?.[0]?.rating || simulated.status,
-            hash: simulated.articleHash ? `${simulated.articleHash.slice(0, 10)}...${simulated.articleHash.slice(-6)}` : "0x7f83b1...6d9069",
-            date: "Hari Ini, " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
-            tx: simulated.network,
-          },
-          ...prev,
-        ]);
+        setResult(null);
+        setServerNotice(`Layanan API verifikasi mengembalikan respon error (Status ${res.status}).`);
       }
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const simulated = simulateNewsValidation(query.trim());
-      setResult(simulated);
-      setServerNotice(
-        "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
-      );
-      setAuditHistory((prev) => [
-        {
-          id: `audit-${Date.now()}`,
-          title: query.trim(),
-          score: `${simulated.credibilityScore}/100`,
-          status: simulated.claimsReview?.[0]?.rating || simulated.status,
-          hash: simulated.articleHash ? `${simulated.articleHash.slice(0, 10)}...${simulated.articleHash.slice(-6)}` : "0x7f83b1...6d9069",
-          date: "Hari Ini, " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
-          tx: simulated.network,
-        },
-        ...prev,
-      ]);
+      setResult(null);
+      setServerNotice("Layanan backend API (http://localhost:8000) belum terhubung. Jalankan server backend untuk memverifikasi berita secara langsung.");
     } finally {
       setIsLoading(false);
-      // Scroll smoothly to results section
+      // Scroll smoothly to results section if results exist
       setTimeout(() => {
         const el = document.getElementById("verification-result-section");
         if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -332,9 +262,6 @@ export default function Home() {
     setQuery(title);
     setActiveTab("Cek Fakta");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const simulated = simulateNewsValidation(title);
-    setResult(simulated);
-    setServerNotice("Simulasi: contoh hasil untuk klaim ini, bukan data langsung.");
   };
 
   const handleCheckHoax = handleHoaxClick;
@@ -692,13 +619,7 @@ export default function Home() {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         onLoadDiffDemo={() => {
-          setResult(SAMPLE_DIFF_VERIFICATION_RESULT);
-          setTimeout(() => {
-            const el = document.getElementById("verification-result-section");
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth" });
-            }
-          }, 100);
+          setSelectedFeatureModal(null);
         }}
       />
 
@@ -788,17 +709,29 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Section */}
-          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-8 sm:py-14 animate-in fade-in duration-300 overflow-hidden">
-            <ResultCard
-              data={result}
-              notice={serverNotice}
-              onReset={() => {
-                setResult(null);
-                setServerNotice(null);
-              }}
-            />
-          </section>
+          {/* Verification Result Section - Hanya muncul saat ada hasil pengecekan riil */}
+          {result && (
+            <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-8 sm:py-14 animate-in fade-in duration-300 overflow-hidden">
+              <ResultCard
+                data={result}
+                notice={serverNotice}
+                onReset={() => {
+                  setResult(null);
+                  setServerNotice(null);
+                }}
+              />
+            </section>
+          )}
+
+          {/* Notifikasi jika backend belum aktif saat pengecekan dilakukan */}
+          {!result && serverNotice && (
+            <div className="mx-auto w-full max-w-2xl px-4 py-8 text-center animate-in fade-in duration-200">
+              <div className="inline-flex items-center gap-2.5 rounded-2xl bg-amber-50 border border-amber-200/80 p-4 text-xs text-amber-900 shadow-xs dark:bg-amber-950/40 dark:border-amber-900/60 dark:text-amber-300 text-left">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>{serverNotice}</span>
+              </div>
+            </div>
+          )}
         </>
       )}
 

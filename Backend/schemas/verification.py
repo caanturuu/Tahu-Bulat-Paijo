@@ -17,6 +17,7 @@ class DiffSummary(BaseModel):
 class VerificationRequest(BaseModel):
     query: str
     mode: Optional[str] = "url"  # "url" | "text"
+    userAddress: Optional[str] = "0x0000000000000000000000000000000000000000"
 
 class RescanRequest(BaseModel):
     url: str
@@ -29,7 +30,9 @@ class VerificationResult(BaseModel):
     publishedDate: Optional[str] = None
     articleHash: str
     credibilityScore: int = Field(ge=0, le=100)
-    status: str  # "VALID" | "QUESTIONABLE" | "HOAX"
+    status: str  # "VALID" | "QUESTIONABLE" | "HOAX" | "NOT_NEWS"
+    isNews: Optional[bool] = True
+    notNewsReason: Optional[str] = None
     narasi: Optional[str] = None
     penjelasan: Optional[str] = None
     kesimpulan: Optional[str] = None

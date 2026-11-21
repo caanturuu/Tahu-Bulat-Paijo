@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult } from "@/types";
+import { formatDate, shortenHash } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -214,6 +216,42 @@ export default function Home() {
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
   const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
 
+  // Live database states from Supabase via FastAPI backend
+  const [liveHistory, setLiveHistory] = useState<any[]>([]);
+  const [liveHoaxArticles, setLiveHoaxArticles] = useState<any[]>([]);
+
+  // Function to refresh audit history
+  const fetchLiveHistory = () => {
+    fetch("http://localhost:8000/api/history")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) setLiveHistory(data);
+      })
+      .catch(() => {});
+  };
+
+  // Function to fetch hoax articles catalog
+  const fetchLiveHoaxArticles = (cat?: string) => {
+    const url =
+      cat && cat !== "Semua"
+        ? `http://localhost:8000/api/hoax-articles?category=${encodeURIComponent(cat)}`
+        : "http://localhost:8000/api/hoax-articles";
+    fetch(url)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) setLiveHoaxArticles(data);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchLiveHistory();
+  }, []);
+
+  useEffect(() => {
+    fetchLiveHoaxArticles(selectedHoaxCategory);
+  }, [selectedHoaxCategory]);
+
   // Hidden file input for plus button
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -244,6 +282,7 @@ export default function Home() {
       if (res.ok) {
         const liveData = await res.json();
         setResult(liveData);
+        fetchLiveHistory();
       } else {
         // Backend returned non-200, keep card empty (no dummy data)
         setResult(null);
@@ -395,40 +434,95 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {filteredHoaxPlaceholders.map((item) => (
-                  <div
-                    key={item.id}
-                    className="group flex flex-col justify-between rounded-[22px] border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
-                  >
-                    <div>
-                      {/* Thumbnail Image Placeholder */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
-                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
-                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                {liveHoaxArticles.length > 0 ? (
+                  liveHoaxArticles
+                    .filter((item) => {
+                      const q = hoaxSearchQuery.toLowerCase().trim();
+                      return (
+                        !q ||
+                        item.title?.toLowerCase().includes(q) ||
+                        item.category?.toLowerCase().includes(q) ||
+                        item.narasi?.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/berita-hoax/${item.id}`}
+                        className="group flex flex-col justify-between rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                      >
+                        <div>
+                          {/* Thumbnail Image */}
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                            {item.image_url ? (
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+                            )}
+                          </div>
+
+                          {/* Title & Tag */}
+                          <div className="mt-3.5 space-y-1.5">
+                            <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 rounded px-2 py-0.5 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400 font-bold">
+                              {item.category || "HOAKS"}
+                            </span>
+                            <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
+                              {item.title}
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* Footer Info */}
+                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">
+                            {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
+                          </span>
+                          <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
+                            Cek Berita →
+                          </span>
+                        </div>
+                      </Link>
+                    ))
+                ) : (
+                  filteredHoaxPlaceholders.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group flex flex-col justify-between rounded-[22px] border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                    >
+                      <div>
+                        {/* Thumbnail Image Placeholder */}
+                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
+                          <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
+                          <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                        </div>
+
+                        {/* Title & Tag Placeholder */}
+                        <div className="mt-3.5 space-y-1.5">
+                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                            {item.tag}
+                          </span>
+                          <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                            {item.title}
+                          </h3>
+                        </div>
                       </div>
 
-                      {/* Title & Tag Placeholder */}
-                      <div className="mt-3.5 space-y-1.5">
-                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
-                          {item.tag}
+                      {/* Footer Info Placeholder */}
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                        <span className="text-slate-400 dark:text-zinc-500 font-medium">
+                          {item.date}
                         </span>
-                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
-                          {item.title}
-                        </h3>
+                        <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
+                          Menunggu Data →
+                        </span>
                       </div>
                     </div>
-
-                    {/* Footer Info Placeholder */}
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                      <span className="text-slate-400 dark:text-zinc-500 font-medium">
-                        {item.date}
-                      </span>
-                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
-                        Menunggu Data →
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             )}
 
@@ -744,10 +838,20 @@ export default function Home() {
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/90">
-            {/* Informative placeholder top banner */}
-            <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center gap-2">
-              <span className="font-semibold text-slate-600 dark:text-zinc-300">Tampilan Placeholder:</span>
-              <span>Belum ada transaksi audit on-chain permanen yang dicatat. Riwayat hash artikel dan IPFS CID akan otomatis terisi saat proses verifikasi berita dijalankan.</span>
+            {/* Informative top banner */}
+            <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                  {liveHistory.length > 0 ? "Tersambung ke Supabase" : "Tampilan Placeholder"}
+                </span>
+                <span>•</span>
+                <span>
+                  {liveHistory.length > 0
+                    ? `Menampilkan ${liveHistory.length} riwayat audit terverifikasi.`
+                    : "Belum ada transaksi audit tersimpan. Riwayat akan otomatis terisi saat proses verifikasi berita dijalankan."}
+                </span>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -759,34 +863,99 @@ export default function Home() {
                     <th className="p-3.5 sm:p-4">Status</th>
                     <th className="p-3.5 sm:p-4 hidden sm:table-cell">Article Hash</th>
                     <th className="p-3.5 sm:p-4">Waktu Audit</th>
-                    <th className="p-3.5 sm:p-4">Transaksi</th>
+                    <th className="p-3.5 sm:p-4">Transaksi / Penyimpanan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
-                  {AUDIT_HISTORY_PLACEHOLDERS.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="p-3.5 sm:p-4 font-medium text-slate-400 dark:text-zinc-500 max-w-xs truncate">
-                        {row.title}
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-400 dark:text-zinc-500">
-                        {row.score}
-                      </td>
-                      <td className="p-3.5 sm:p-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-400 dark:text-zinc-500 hidden sm:table-cell">
-                        {row.hash}
-                      </td>
-                      <td className="p-3.5 sm:p-4 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-                        {row.date}
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-mono text-xs text-slate-400 dark:text-zinc-500">
-                        {row.tx}
-                      </td>
-                    </tr>
-                  ))}
+                  {liveHistory.length > 0
+                    ? liveHistory.map((row) => {
+                        const isHoaxStatus = row.status === "HOAX";
+                        const isValidStatus = row.status === "VALID";
+                        const isQuestionableStatus = row.status === "QUESTIONABLE";
+
+                        return (
+                          <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
+                            <td className="p-3.5 sm:p-4 font-medium text-slate-900 dark:text-white max-w-xs truncate">
+                              {row.article_title}
+                            </td>
+                            <td className="p-3.5 sm:p-4 font-bold font-mono">
+                              <span
+                                className={
+                                  row.credibility_score >= 80
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : row.credibility_score >= 50
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-[#dc2626] dark:text-rose-400"
+                                }
+                              >
+                                {row.credibility_score}/100
+                              </span>
+                            </td>
+                            <td className="p-3.5 sm:p-4">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                                  isHoaxStatus
+                                    ? "bg-rose-50 text-[#dc2626] border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/50"
+                                    : isValidStatus
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900/50"
+                                    : isQuestionableStatus
+                                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:border-amber-900/50"
+                                    : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                                }`}
+                              >
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-600 dark:text-zinc-400 hidden sm:table-cell">
+                              {shortenHash(row.article_hash, 6)}
+                            </td>
+                            <td className="p-3.5 sm:p-4 text-[11px] text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                              {formatDate(row.created_at)}
+                            </td>
+                            <td className="p-3.5 sm:p-4 font-mono text-xs text-[#185adb] dark:text-blue-400">
+                              {row.tx_hash ? (
+                                <a
+                                  href={`https://sepolia.etherscan.io/tx/${row.tx_hash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline inline-flex items-center gap-1"
+                                >
+                                  {shortenHash(row.tx_hash, 6)}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ) : (
+                                <span className="text-slate-500 dark:text-zinc-400 font-sans text-[11px]">
+                                  Tersimpan di Supabase
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    : AUDIT_HISTORY_PLACEHOLDERS.map((row) => (
+                        <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
+                          <td className="p-3.5 sm:p-4 font-medium text-slate-400 dark:text-zinc-500 max-w-xs truncate">
+                            {row.title}
+                          </td>
+                          <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-400 dark:text-zinc-500">
+                            {row.score}
+                          </td>
+                          <td className="p-3.5 sm:p-4">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-400 dark:text-zinc-500 hidden sm:table-cell">
+                            {row.hash}
+                          </td>
+                          <td className="p-3.5 sm:p-4 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
+                            {row.date}
+                          </td>
+                          <td className="p-3.5 sm:p-4 font-mono text-xs text-slate-400 dark:text-zinc-500">
+                            {row.tx}
+                          </td>
+                        </tr>
+                      ))}
                 </tbody>
               </table>
             </div>

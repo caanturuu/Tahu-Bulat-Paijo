@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Award,
   Link as LinkIcon,
+  HelpCircle,
+  Newspaper,
 } from "lucide-react";
 import { VerificationResult } from "@/types";
 import { formatDate, getScoreStatusText } from "@/lib/utils";
@@ -129,6 +131,92 @@ export function ResultCard({ data }: ResultCardProps) {
     );
   }
 
+  // State when input is NOT news
+  if (data.isNews === false || data.status === "NOT_NEWS") {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/70 p-6 sm:p-8 dark:border-amber-700/60 dark:bg-amber-950/20 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-xs">
+              <HelpCircle className="h-6 w-6" />
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-amber-600 px-2.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-2xs">
+                  BUKAN BERITA
+                </span>
+                <span className="rounded-md border border-amber-300 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-amber-800 uppercase tracking-wider dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-300">
+                  HASIL VALIDASI KONTEN
+                </span>
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug pt-1">
+                Input Terdeteksi Bukan Berita atau Klaim Isu Faktual
+              </h3>
+
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed pt-1">
+                {data.notNewsReason ||
+                  data.penjelasan ||
+                  "Teks atau tautan yang dimasukkan tidak teridentifikasi sebagai artikel berita, isu viral, atau rilis peristiwa publik yang memerlukan verifikasi fakta."}
+              </p>
+            </div>
+          </div>
+
+          {/* Temuan Analisis */}
+          {data.keyFindings && data.keyFindings.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-amber-200/80 dark:border-amber-900/40 space-y-2">
+              <h5 className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                Indikator Klasifikasi Sistem:
+              </h5>
+              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-zinc-300">
+                {data.keyFindings.map((point, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">•</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Panduan Input yang Didukung */}
+          <div className="mt-6 pt-5 border-t border-amber-200/80 dark:border-amber-900/40">
+            <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+              Kategori yang Dapat Diverifikasi di VeritasChain:
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 p-3.5 border border-slate-200 dark:border-zinc-800 shadow-2xs">
+                <span className="font-bold text-slate-900 dark:text-white block mb-1">
+                  1. Tautan Portal Berita
+                </span>
+                <p className="text-slate-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Masukkan link berita (Kompas, Detik, Tempo, Antara, dsb) untuk audit keaslian dan pelacakan revisi (diff).
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 p-3.5 border border-slate-200 dark:border-zinc-800 shadow-2xs">
+                <span className="font-bold text-slate-900 dark:text-white block mb-1">
+                  2. Narasi / Kabar Viral
+                </span>
+                <p className="text-slate-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Salin teks klaim viral WhatsApp, rumor publik, atau isu medsos yang perlu dibuktikan kebenarannya.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/90 dark:bg-zinc-900/90 p-3.5 border border-slate-200 dark:border-zinc-800 shadow-2xs">
+                <span className="font-bold text-slate-900 dark:text-white block mb-1">
+                  3. Bantuan & Regulasi
+                </span>
+                <p className="text-slate-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Klaim pembagian bansos, pendaftaran program pemerintah, atau kebijakan kementerian resmi.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Normal populated state
   const scoreInfo = getScoreStatusText(data.credibilityScore);
   const isHoax = data.credibilityScore < 50;
@@ -142,6 +230,9 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="flex-1 space-y-2">
           {/* Status Badges */}
           <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-md border border-blue-200 bg-blue-50/80 px-2.5 py-1 text-[11px] font-bold text-[#185adb] uppercase tracking-wider dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
+              BERITA TERVERIFIKASI
+            </span>
             {isHoax ? (
               <>
                 <span className="rounded-md bg-[#dc2626] px-2.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-2xs">

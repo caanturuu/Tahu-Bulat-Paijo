@@ -1,0 +1,72 @@
+from typing import Dict, Any, List, Optional
+from supabase import create_client, Client
+from config import SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+
+_client: Optional[Client] = None
+
+def get_supabase_client() -> Optional[Client]:
+    """Initialize and return a singleton Supabase client using service role key."""
+    global _client
+    if _client is not None:
+        return _client
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or "your-project-id" in SUPABASE_URL:
+        return None
+    try:
+        _client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        return _client
+    except Exception as e:
+        print(f"[Supabase] Client init error: {e}")
+        return None
+
+def save_audit_history(record: Dict[str, Any]) -> bool:
+    """Save user verification record to user_audit_history table."""
+    client = get_supabase_client()
+    if not client:
+        return False
+    try:
+        client.table("user_audit_history").insert(record).execute()
+        return True
+    except Exception as e:
+        print(f"[Supabase] save_audit_history error: {e}")
+        return False
+
+def get_audit_history(limit: int = 20) -> List[Dict[str, Any]]:
+    """Retrieve recent verification history records."""
+    client = get_supabase_client()
+    if not client:
+        return []
+    try:
+        res = client.table("user_audit_history").select("*").order("created_at", desc=True).limit(limit).execute()
+        return res.data or []
+    except Exception as e:
+        print(f"[Supabase] get_audit_history error: {e}")
+        return []
+
+def get_hoax_articles(limit: int = 50, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieve catalog of verified hoax articles for the card grid."""
+    client = get_supabase_client()
+    if not client:
+        return []
+    try:
+        query = client.table("hoax_articles").select("*")
+        if category and category.lower() != "semua":
+            query = query.ilike("category", f"%{category}%")
+        res = query.order("created_at", desc=True).limit(limit).execute()
+        return res.data or []
+    except Exception as e:
+        print(f"[Supabase] get_hoax_articles error: {e}")
+        return []
+
+def get_hoax_article_by_id(article_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieve full verification details of a specific hoax article by UUID."""
+    client = get_supabase_client()
+    if not client:
+        return None
+    try:
+        res = client.table("hoax_articles").select("*").eq("id", article_id).limit(1).execute()
+        if res.data and len(res.data) > 0:
+            return res.data[0]
+        return None
+    except Exception as e:
+        print(f"[Supabase] get_hoax_article_by_id error: {e}")
+        return None

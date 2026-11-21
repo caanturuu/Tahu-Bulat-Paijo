@@ -39,7 +39,44 @@ def verify_article_with_gemini(
 
     prompt = f"""
 Anda adalah mesin verifikasi berita dan pemeriksa fakta resmi tingkat tinggi bernama VeritasChain.
-Tugas Anda: Menganalisis isu atau berita berikut secara mendalam, objektif, dan faktual mengikuti struktur standar pemeriksa fakta (MAFINDO / TurnBackHoax).
+Tugas Anda:
+1. VALIDASI KONTEN (Apakah Ini Berita atau Bukan?):
+- Klasifikasikan apakah input ini merupakan BERITA / KLAIM INFORMASI PUBLIK (isNews = true) atau BUKAN BERITA (isNews = false).
+- Kategori BERITA / KLAIM PUBLIK (isNews = true): artikel jurnalistik, berita portal, kabar/isu viral di media sosial, rilis pers instansi/pemerintah, klaim peristiwa (5W+1H), klaim bantuan sosial, rumor publik, atau narasi hoaks yang beredar di masyarakat.
+- Kategori BUKAN BERITA (isNews = false): sapaan santai ("halo", "hai", "apa kabar"), resep masakan/makanan, baris kode program, matematika dasar, pertanyaan definisi umum kamus, curhatan/percakapan pribadi tanpa klaim publik, atau teks acak/gibberish.
+
+2. INSTRUKSI OUTPUT JSON:
+Jika isNews = false:
+Kembalikan JSON persis berikut:
+{{
+  "isNews": false,
+  "notNewsReason": "Jelaskan dengan ramah dalam 1-2 kalimat mengapa teks ini bukan merupakan artikel atau klaim berita publik.",
+  "narasi": "Teks yang dimasukkan tidak teridentifikasi sebagai berita atau klaim informasi publik.",
+  "penjelasan": "Konten ini tergolong teks non-berita. VeritasChain berfokus memeriksa keabsahan berita pers, isu viral, dan klaim kebijakan publik.",
+  "kesimpulan": "Input Terdeteksi Bukan Berita.",
+  "credibilityScore": 0,
+  "status": "NOT_NEWS",
+  "summary": "Teks ini bukan merupakan berita atau klaim peristiwa publik.",
+  "keyFindings": [
+    "Input tidak memuat unsur 5W+1H peristiwa atau kebijakan publik.",
+    "Tidak ditemukan klaim faktual yang dapat diverifikasi kebenarannya.",
+    "Sistem membatasi audit hanya untuk konten berita dan informasi publik."
+  ]
+}}
+
+Jika isNews = true:
+Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
+{{
+  "isNews": true,
+  "notNewsReason": null,
+  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat terkait isu ini, biasanya diawali seperti "Beredar informasi/klaim bahwa..."),
+  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya, membantah disinformasi atau menjelaskan konteks validitas artikel ini secara runtut dan lengkap),
+  "kesimpulan": (string: kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini, beserta kategori hoaks/faktanya),
+  "credibilityScore": (integer antara 0 sampai 100, di mana 0 = mutlak hoaks/palsu, 100 = fakta valid dan terverifikasi resmi),
+  "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika skor 40-69, "HOAX" jika skor < 40),
+  "summary": (string: ringkasan 2-3 kalimat mengenai hasil analisis),
+  "keyFindings": (array of string: persis 3 poin temuan utama yang berbasis fakta dan data)
+}}
 
 [JUDUL ARTIKEL / KLAIM]
 {title}
@@ -49,18 +86,6 @@ Tugas Anda: Menganalisis isu atau berita berikut secara mendalam, objektif, dan 
 
 [REFERENSI BASIS DATA CEK FAKTA RESMI (CLAIMREVIEW)]
 {json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di basis data."}
-
-Instruksi Output:
-Kembalikan JSON murni dengan struktur persis berikut:
-{{
-  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat terkait isu ini, biasanya diawali seperti "Beredar informasi/klaim bahwa..."),
-  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya, membantah disinformasi atau menjelaskan konteks validitas artikel ini secara runtut dan lengkap),
-  "kesimpulan": (string: kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini, beserta kategori hoaks/faktanya),
-  "credibilityScore": (integer antara 0 sampai 100, di mana 0 = mutlak hoaks/palsu, 100 = fakta valid dan terverifikasi resmi),
-  "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika skor 40-69, "HOAX" jika skor < 40),
-  "summary": (string: ringkasan 2-3 kalimat mengenai hasil analisis),
-  "keyFindings": (array of string: persis 3 poin temuan utama yang berbasis fakta dan data)
-}}
 """
 
     models_to_try = ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
@@ -76,6 +101,26 @@ Kembalikan JSON murni dengan struktur persis berikut:
             )
 
             result = json.loads(response.text)
+            is_news = result.get("isNews", True)
+            not_news_reason = result.get("notNewsReason")
+            
+            if not is_news:
+                return {
+                    "isNews": False,
+                    "notNewsReason": not_news_reason or "Teks yang dimasukkan terdeteksi bukan merupakan artikel atau klaim berita publik.",
+                    "narasi": result.get("narasi", "Teks yang dimasukkan tidak teridentifikasi sebagai berita atau klaim informasi publik."),
+                    "penjelasan": result.get("penjelasan", "Konten ini tergolong teks non-berita. VeritasChain berfokus memeriksa keabsahan berita pers, isu viral, dan klaim kebijakan publik."),
+                    "kesimpulan": result.get("kesimpulan", "Input Terdeteksi Bukan Berita."),
+                    "credibilityScore": 0,
+                    "status": "NOT_NEWS",
+                    "summary": result.get("summary", "Teks ini bukan merupakan berita atau klaim peristiwa publik."),
+                    "keyFindings": result.get("keyFindings", [
+                        "Input tidak memuat unsur 5W+1H peristiwa atau kebijakan publik.",
+                        "Tidak ditemukan klaim faktual yang dapat diverifikasi kebenarannya.",
+                        "Sistem membatasi audit hanya untuk konten berita dan informasi publik."
+                    ]),
+                }
+
             score = int(result.get("credibilityScore", 80))
             status = result.get("status", "VALID" if score >= 70 else "QUESTIONABLE" if score >= 40 else "HOAX")
             narasi = result.get("narasi", f"Klaim terkait: {title}")
@@ -89,6 +134,8 @@ Kembalikan JSON murni dengan struktur persis berikut:
             ])
 
             return {
+                "isNews": True,
+                "notNewsReason": None,
                 "narasi": narasi,
                 "penjelasan": penjelasan,
                 "kesimpulan": kesimpulan,

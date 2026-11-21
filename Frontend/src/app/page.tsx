@@ -187,7 +187,7 @@ export default function Home() {
       .then((data) => {
         if (Array.isArray(data)) setLiveHistory(data);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   // Function to fetch hoax articles catalog
@@ -201,7 +201,7 @@ export default function Home() {
       .then((data) => {
         if (Array.isArray(data)) setLiveHoaxArticles(data);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -571,9 +571,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-    </div>
-  );
-};
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-[#fbfbfb] text-slate-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
@@ -639,9 +639,8 @@ export default function Home() {
               {INDONESIA_NEWS_BACKGROUNDS.map((bg, idx) => (
                 <div
                   key={bg.src}
-                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                    idx === currentBgIndex ? "opacity-90 z-1" : "opacity-0 z-0"
-                  }`}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentBgIndex ? "opacity-90 z-1" : "opacity-0 z-0"
+                    }`}
                 >
                   <Image
                     src={bg.src}
@@ -867,8 +866,8 @@ export default function Home() {
                                   row.credibility_score >= 80
                                     ? "text-emerald-600 dark:text-emerald-400"
                                     : row.credibility_score >= 50
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-[#dc2626] dark:text-rose-400"
+                                      ? "text-amber-600 dark:text-amber-400"
+                                      : "text-[#dc2626] dark:text-rose-400"
                                 }
                               >
                                 {row.credibility_score}/100
@@ -876,15 +875,14 @@ export default function Home() {
                             </td>
                             <td className="p-3.5 sm:p-4">
                               <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                                  isHoaxStatus
-                                    ? "bg-rose-50 text-[#dc2626] border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/50"
-                                    : isValidStatus
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${isHoaxStatus
+                                  ? "bg-rose-50 text-[#dc2626] border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/50"
+                                  : isValidStatus
                                     ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900/50"
                                     : isQuestionableStatus
-                                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:border-amber-900/50"
-                                    : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
-                                }`}
+                                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:border-amber-900/50"
+                                      : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                                  }`}
                               >
                                 {row.status}
                               </span>

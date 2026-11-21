@@ -98,32 +98,24 @@ const INDONESIA_NEWS_BACKGROUNDS = [
   },
 ];
 
-// 15 Placeholder slots for Hoax News (Dummy data removed)
-const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  tag: "[KATEGORI / HOAKS]",
-  title: `[Slot Judul Berita Hoaks Terdeteksi #${i + 1}]`,
-  date: "Menunggu data API",
-}));
+// Hoax News dynamic item interface (15 per page limit, paginated)
+export interface HoaxNewsItem {
+  id: string | number;
+  title: string;
+  tag: string;
+  date: string;
+  image?: string;
+  url?: string;
+  source?: string;
+}
 
-// Placeholder slots for Popular Trending Hoax items
-const POPULAR_HOAX_PLACEHOLDERS = [
-  {
-    rank: 1,
-    title: "[Menunggu data agregasi artikel terpopuler #1]",
-    views: "-- dibaca",
-  },
-  {
-    rank: 2,
-    title: "[Menunggu data agregasi artikel terpopuler #2]",
-    views: "-- dibaca",
-  },
-  {
-    rank: 3,
-    title: "[Menunggu data agregasi artikel terpopuler #3]",
-    views: "-- dibaca",
-  },
-];
+// Popular trending hoax item interface
+export interface PopularHoaxItem {
+  rank: number;
+  title: string;
+  views: string;
+  image?: string;
+}
 
 // Placeholder verification result for diff demo (Neutral template, no fake news)
 const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
@@ -192,12 +184,46 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
+  // Hoax news dynamic state (15 per page limit, paginated)
+  const [hoaxNewsList, setHoaxNewsList] = useState<HoaxNewsItem[]>([]);
+  const [popularHoaxList, setPopularHoaxList] = useState<PopularHoaxItem[]>([]);
+  const [currentHoaxPage, setCurrentHoaxPage] = useState(1);
+  const HOAX_ITEMS_PER_PAGE = 15;
+
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
   const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
 
   // Hidden file input for plus button
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fetch hoax news from backend when available (defaults to empty [])
+  useEffect(() => {
+    const fetchHoaxData = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const res = await fetch("http://localhost:8000/api/hoax-news", {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.items)) {
+            setHoaxNewsList(data.items);
+          } else if (Array.isArray(data)) {
+            setHoaxNewsList(data);
+          }
+          if (Array.isArray(data.popular)) {
+            setPopularHoaxList(data.popular);
+          }
+        }
+      } catch {
+        // Backend not ready yet -> stays empty []
+      }
+    };
+    fetchHoaxData();
+  }, []);
 
   // 15 seconds automatic rotation effect
   useEffect(() => {
@@ -302,7 +328,7 @@ export default function Home() {
     setQuery(topic);
   };
 
-  const handleCheckHoax = (title: string) => {
+  const handleHoaxClick = (title: string) => {
     setQuery(title);
     setActiveTab("Cek Fakta");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -311,9 +337,11 @@ export default function Home() {
     setServerNotice("Simulasi: contoh hasil untuk klaim ini, bukan data langsung.");
   };
 
+  const handleCheckHoax = handleHoaxClick;
+
   // Reusable Hoax News Section (matching uploaded reference)
   const renderHoaxNewsSection = () => {
-    const filteredHoaxPlaceholders = HOAX_NEWS_PLACEHOLDERS.filter((item) => {
+    const filteredHoaxNews = hoaxNewsList.filter((item) => {
       const q = hoaxSearchQuery.toLowerCase().trim();
       const matchesQuery =
         !q ||
@@ -328,6 +356,12 @@ export default function Home() {
       return matchesQuery && matchesCat;
     });
 
+    const totalPages = Math.ceil(filteredHoaxNews.length / HOAX_ITEMS_PER_PAGE);
+    const paginatedHoaxNews = filteredHoaxNews.slice(
+      (currentHoaxPage - 1) * HOAX_ITEMS_PER_PAGE,
+      currentHoaxPage * HOAX_ITEMS_PER_PAGE
+    );
+
     return (
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
@@ -337,7 +371,7 @@ export default function Home() {
               Berita Hoax Terkini
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
-              Tampilan placeholder agregasi kabar keliru yang viral. Data live akan disinkronkan otomatis dari konsorsium jurnalisme resmi.
+              Agregasi kabar keliru dan klarifikasi fakta terverifikasi dari konsorsium jurnalisme resmi.
             </p>
           </div>
 
@@ -351,14 +385,20 @@ export default function Home() {
                 <input
                   type="text"
                   value={hoaxSearchQuery}
-                  onChange={(e) => setHoaxSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setHoaxSearchQuery(e.target.value);
+                    setCurrentHoaxPage(1);
+                  }}
                   placeholder="Cari arsip berita hoaks, topik, atau kata kunci..."
                   className="w-full bg-transparent px-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none dark:text-zinc-100 dark:placeholder-zinc-500"
                 />
                 {hoaxSearchQuery && (
                   <button
                     type="button"
-                    onClick={() => setHoaxSearchQuery("")}
+                    onClick={() => {
+                      setHoaxSearchQuery("");
+                      setCurrentHoaxPage(1);
+                    }}
                     className="mr-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                     title="Hapus pencarian"
                   >
@@ -385,7 +425,10 @@ export default function Home() {
                 <button
                   key={cat}
                   type="button"
-                  onClick={() => setSelectedHoaxCategory(cat)}
+                  onClick={() => {
+                    setSelectedHoaxCategory(cat);
+                    setCurrentHoaxPage(1);
+                  }}
                   className={`rounded-full px-3 py-1 font-medium transition-colors shrink-0 text-xs ${
                     selectedHoaxCategory === cat
                       ? "bg-[#185adb] text-white shadow-2xs"
@@ -401,19 +444,45 @@ export default function Home() {
 
         {/* Main Grid: 8 Cols Cards + 4 Cols Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: 15 Hoax Placeholder Cards */}
+          {/* Left Column: Hoax News Cards / Empty State (Max 15 per page, paginated) */}
           <div className="lg:col-span-8">
-            {filteredHoaxPlaceholders.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
+            {hoaxNewsList.length === 0 ? (
+              /* Empty state when no data exists in backend */
+              <div className="flex flex-col items-center justify-center py-20 sm:py-28 px-4 text-center rounded-3xl border border-slate-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xs">
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 dark:bg-zinc-800/80 dark:border-zinc-700/60 text-slate-400 dark:text-zinc-500 mb-4 shadow-2xs">
+                  <FileSearch className="h-8 w-8 sm:h-10 sm:w-10 stroke-[1.5]" />
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-zinc-100">
+                  Belum Ada Berita Hoaks Terdata
+                </h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-zinc-400 max-w-sm">
+                  Daftar laporan kabar keliru yang viral akan otomatis ditampilkan saat data tersedia dari backend.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("Cek Fakta");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[#185adb] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all"
+                >
+                  <Search className="h-3.5 w-3.5" strokeWidth={2} />
+                  <span>Periksa Fakta Baru</span>
+                </button>
+              </div>
+            ) : filteredHoaxNews.length === 0 ? (
+              /* No search results match query */
+              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900 shadow-2xs">
                 <FileSearch className="mx-auto h-8 w-8 text-slate-300 dark:text-zinc-600 mb-2" strokeWidth={1.5} />
                 <p className="text-sm font-medium text-slate-600 dark:text-zinc-400">
-                  Tidak ada slot berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
+                  Tidak ada berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setHoaxSearchQuery("");
                     setSelectedHoaxCategory("Semua");
+                    setCurrentHoaxPage(1);
                   }}
                   className="mt-3 text-xs font-semibold text-[#185adb] hover:underline"
                 >
@@ -421,116 +490,143 @@ export default function Home() {
                 </button>
               </div>
             ) : (
+              /* Populated Cards (Max 15 per page) */
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {filteredHoaxPlaceholders.map((item) => (
+                {paginatedHoaxNews.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex flex-col justify-between rounded-[22px] border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                    className="group flex flex-col justify-between rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-200"
                   >
                     <div>
-                      {/* Thumbnail Image Placeholder */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
-                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
-                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                      {/* Thumbnail Image */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500">
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="p-3 text-center flex flex-col items-center">
+                            <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
+                            <span className="text-[11px] font-medium tracking-tight">Berita #{item.id}</span>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Title & Tag Placeholder */}
+                      {/* Title & Tag */}
                       <div className="mt-3.5 space-y-1.5">
-                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                        <span className="inline-block font-mono text-[10px] uppercase font-bold tracking-wider text-rose-600 bg-rose-50 border border-rose-200/80 rounded px-1.5 py-0.5 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/60">
                           {item.tag}
                         </span>
-                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-800 dark:text-zinc-100 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
                           {item.title}
                         </h3>
                       </div>
                     </div>
 
-                    {/* Footer Info Placeholder */}
+                    {/* Footer Info */}
                     <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
                       <span className="text-slate-400 dark:text-zinc-500 font-medium">
                         {item.date}
                       </span>
-                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
-                        Menunggu Data →
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleHoaxClick(item.title)}
+                        className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-0.5 hover:underline"
+                      >
+                        Periksa Fakta →
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Pagination bar for 15 placeholder items */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-                Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {filteredHoaxPlaceholders.length}</strong> dari <strong>{HOAX_NEWS_PLACEHOLDERS.length}</strong> slot data kosong
-              </span>
-              <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
-                  disabled
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 opacity-60 cursor-not-allowed dark:border-zinc-800"
-                >
-                  ← Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg bg-[#185adb] px-3 py-1.5 font-bold text-white shadow-xs"
-                >
-                  1
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  2
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  3
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  Selanjutnya →
-                </button>
+            {/* Pagination bar (Hanya muncul jika ada data & lebih dari 15 item) */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-2xs">
+                <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                  Menampilkan <strong className="text-slate-800 dark:text-zinc-200">{(currentHoaxPage - 1) * HOAX_ITEMS_PER_PAGE + 1} - {Math.min(currentHoaxPage * HOAX_ITEMS_PER_PAGE, filteredHoaxNews.length)}</strong> dari <strong>{filteredHoaxNews.length}</strong> berita
+                </span>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentHoaxPage((p) => Math.max(1, p - 1))}
+                    disabled={currentHoaxPage === 1}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-800 dark:text-zinc-300"
+                  >
+                    ← Sebelumnya
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setCurrentHoaxPage(num)}
+                      className={`rounded-lg px-3 py-1.5 font-bold transition-all ${
+                        currentHoaxPage === num
+                          ? "bg-[#185adb] text-white shadow-xs"
+                          : "border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentHoaxPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentHoaxPage === totalPages}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-800 dark:text-zinc-300"
+                  >
+                    Selanjutnya →
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-        {/* Right Column: Sidebar Placeholders (Static / Non-sticky) */}
+        {/* Right Column: Sidebar */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Card 1: Berita Terpopuler Saat Ini (Placeholder) */}
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-              Berita Terpopuler Saat Ini
+          {/* Card 1: Berita Terpopuler Saat Ini */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-rose-500" strokeWidth={2} />
+              Berita Terpopuler
             </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-5">
-              Slot agregasi otomatis isu hoaks yang paling banyak diakses oleh publik.
+            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-4">
+              Isu dan kabar keliru yang paling banyak diperiksa oleh masyarakat.
             </p>
 
-            <div className="space-y-4">
-              {POPULAR_HOAX_PLACEHOLDERS.map((pop) => (
-                <div key={pop.rank} className="flex items-center gap-3.5">
-                  <span className="text-xl font-extrabold text-slate-300 dark:text-zinc-600 w-5 shrink-0">
-                    {pop.rank}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-xs text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
-                      {pop.title}
-                    </h4>
-                    <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-600">
-                      {pop.views} • <span>Menunggu Data</span>
-                    </p>
+            {popularHoaxList.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400 dark:text-zinc-500 border border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl">
+                <TrendingUp className="h-6 w-6 mx-auto mb-2 opacity-40 text-slate-400" strokeWidth={1.5} />
+                <p className="font-medium text-slate-500 dark:text-zinc-400">Belum ada data berita populer</p>
+                <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">Akan terisi otomatis berdasarkan pembaca terbanyak</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {popularHoaxList.map((pop) => (
+                  <div
+                    key={pop.rank}
+                    className="flex items-center gap-3.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleHoaxClick(pop.title)}
+                  >
+                    <span className="text-xl font-extrabold text-slate-300 dark:text-zinc-600 w-5 shrink-0">
+                      {pop.rank}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-xs text-slate-800 dark:text-zinc-200 line-clamp-2 leading-snug">
+                        {pop.title}
+                      </h4>
+                      <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-500">
+                        {pop.views}
+                      </p>
+                    </div>
                   </div>
-                  <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center text-slate-300 dark:text-zinc-600">
-                    <FileSearch className="h-5 w-5" strokeWidth={1.5} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Card 2: Kampanye Literasi Informasi Digital (Poster Resmi - Proporsional) */}

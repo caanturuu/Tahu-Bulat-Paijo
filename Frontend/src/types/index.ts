@@ -23,6 +23,9 @@ export interface VerificationResult {
   network: string;
   timestamp: string;
   hasRevisions?: boolean;
+  narrative?: string;
+  explanation?: string;
+  conclusion?: string;
   diffSummary?: {
     addedWords: number;
     removedWords: number;

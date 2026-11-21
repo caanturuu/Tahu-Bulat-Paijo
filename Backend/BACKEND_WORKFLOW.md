@@ -106,7 +106,7 @@ Backend/
     ],
     "ipfsCid": "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
     "txHash": null,
-    "network": "Base Sepolia",
+    "network": "Ethereum Sepolia",
     "timestamp": "2026-11-21T14:00:00Z"
   }
   ```

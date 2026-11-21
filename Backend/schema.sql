@@ -29,7 +29,7 @@ create table if not exists public.verifications (
     
     -- Bukti Terdesentralisasi & Blockchain
     ipfs_cid text,                                             -- CID arsip snapshot permanen di IPFS Pinata
-    tx_hash text,                                              -- Hash transaksi on-chain di Base Sepolia
+    tx_hash text,                                              -- Hash transaksi on-chain di Ethereum Sepolia
     network text default 'Ethereum Sepolia',                       -- Jaringan blockchain
     
     -- Metadata Waktu

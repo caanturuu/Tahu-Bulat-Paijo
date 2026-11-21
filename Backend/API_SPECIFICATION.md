@@ -16,7 +16,7 @@ Dokumentasi spesifikasi lengkap endpoint REST API backend **VeritasChain** (Fast
 | 1 | `GET` | `/` | Health check & info status layanan backend | `200 OK` |
 | 2 | `POST` | `/api/verify` | Ekstraksi, cek fakta (ClaimReview), reasoning AI, & IPFS | `200 OK`, `400 Bad Request` |
 | 3 | `POST` | `/api/rescan` | Pelacakan revisi teks artikel & perbandingan visual diff | `200 OK`, `400 Bad Request` |
-| 4 | `POST` | `/api/relay` | Gasless meta-transaction relayer ke Base Sepolia | `200 OK`, `400 Bad Request`, `500 Internal Error` |
+| 4 | `POST` | `/api/relay` | Gasless meta-transaction relayer ke Ethereum Sepolia | `200 OK`, `400 Bad Request`, `500 Internal Error` |
 | 5 | `GET` | `/api/audit/{article_hash}` | Mengambil bukti verifikasi publik berdasarkan SHA-256 | `200 OK`, `404 Not Found` |
 
 ---
@@ -34,7 +34,7 @@ Memeriksa apakah server backend FastAPI aktif dan terhubung ke jaringan.
   "service": "VeritasChain Backend API",
   "status": "operational",
   "version": "1.0.0",
-  "network": "Base Sepolia"
+  "network": "Ethereum Sepolia"
 }
 ```
 
@@ -89,7 +89,7 @@ Menerima tautan URL berita atau teks panjang, melakukan ekstraksi konten bersih,
   ],
   "ipfsCid": "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
   "txHash": null,
-  "network": "Base Sepolia",
+  "network": "Ethereum Sepolia",
   "timestamp": "2026-11-21T14:10:00Z",
   "hasRevisions": false,
   "diffSummary": null
@@ -154,7 +154,7 @@ Mengambil ulang (*re-scrape*) artikel live dari URL yang sama, menghitung ulang 
 ---
 
 ## 4. Gasless Meta-Transaction Relayer
-Menerima payload bukti verifikasi yang telah ditandatangani pengguna menggunakan standar EIP-712 (tanpa gas), lalu backend membayarkan gas untuk mencatatkannya ke Smart Contract di Base Sepolia L2.
+Menerima payload bukti verifikasi yang telah ditandatangani pengguna menggunakan standar EIP-712 (tanpa gas), lalu backend membayarkan gas untuk mencatatkannya ke Smart Contract di Ethereum Sepolia.
 
 * **URL**: `/api/relay`
 * **Method**: `POST`
@@ -179,7 +179,7 @@ Menerima payload bukti verifikasi yang telah ditandatangani pengguna menggunakan
 {
   "status": "success",
   "txHash": "0x4b7c1289fe2134567890abcdef1234567890abcdef1234567890abcdef123456",
-  "explorerUrl": "https://sepolia.basescan.org/tx/0x4b7c1289fe2134567890abcdef1234567890abcdef1234567890abcdef123456",
+  "explorerUrl": "https://sepolia.etherscan.io/tx/0x4b7c1289fe2134567890abcdef1234567890abcdef1234567890abcdef123456",
   "blockNumber": 18923412
 }
 ```

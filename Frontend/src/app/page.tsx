@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
-import { SettingsModal } from "@/components/SettingsModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult } from "@/types";
 import {
@@ -207,7 +206,6 @@ export default function Home() {
 
   // Modals state
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedFeatureModal, setSelectedFeatureModal] = useState<"konsorsium" | "blockchain" | "diff" | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -543,7 +541,6 @@ export default function Home() {
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab)}
         onOpenLogin={() => setIsLoginOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
         isLoggedIn={isLoggedIn}
         userEmail={userEmail}
         onLogout={() => {
@@ -560,11 +557,6 @@ export default function Home() {
           setIsLoggedIn(true);
           setUserEmail("validator@veritaschain.id");
         }}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
       />
 
       {/* Feature Deep Dive Interactive Modal */}

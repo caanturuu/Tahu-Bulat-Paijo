@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "VeritasChain - Cek Fakta & Verifikasi Berita Terdesentralisasi",
   description:
     "Verifikasi kebenaran berita dan pelacakan revisi artikel berbasis AI dan Blockchain Base Sepolia.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

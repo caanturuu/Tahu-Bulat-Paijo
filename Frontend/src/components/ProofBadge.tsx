@@ -29,7 +29,7 @@ export function ProofBadge({
     <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/60">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-slate-800 dark:text-zinc-200 uppercase">
-          <Database className="h-4 w-4 text-[#185adb] dark:text-blue-400" />
+          <Database className="h-4 w-4 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
           Bukti Kriptografis & On-Chain (Base L2)
         </h4>
         <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">

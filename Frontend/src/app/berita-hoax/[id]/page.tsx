@@ -105,9 +105,7 @@ function HoaxDetailContent() {
 
         {/* Success Populated Result State */}
         {!isLoading && article && (
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <ResultCard data={article} />
-          </div>
+          <ResultCard data={article} />
         )}
       </div>
     </div>

@@ -1,0 +1,665 @@
+{
+  "contractName": "VeritasChain",
+  "network": "sepolia",
+  "chainId": 11155111,
+  "address": "0x72b64614CadDa0ED5d701Db6a670966AED7759d0",
+  "txHash": "0x41ffb8c921e9edd5584b585c24494b0d70cab56075780909ebace74b3c3bc063",
+  "deployer": "0x70735703c6361165fcC7cC4b9E8CF645c12C9641",
+  "explorerUrl": "https://sepolia.etherscan.io/address/0x72b64614CadDa0ED5d701Db6a670966AED7759d0",
+  "deployedAt": "2026-11-21T08:29:39.126Z",
+  "eip712": {
+    "domain": {
+      "name": "VeritasChain",
+      "version": "1",
+      "chainId": 11155111,
+      "verifyingContract": "0x72b64614CadDa0ED5d701Db6a670966AED7759d0"
+    },
+    "types": {
+      "RecordVerification": [
+        {
+          "name": "articleKey",
+          "type": "bytes32"
+        },
+        {
+          "name": "contentHash",
+          "type": "bytes32"
+        },
+        {
+          "name": "ipfsCid",
+          "type": "string"
+        },
+        {
+          "name": "credibilityScore",
+          "type": "uint8"
+        },
+        {
+          "name": "verifier",
+          "type": "address"
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ]
+    }
+  },
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ArticleNotFound",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "DuplicateContentHash",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        },
+        {
+          "type": "bytes32",
+          "name": "contentHash"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ECDSAInvalidSignature",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ECDSAInvalidSignatureLength",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "length"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ECDSAInvalidSignatureS",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "s"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "EmptyIpfsCid",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidArticleKey",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidContentHash",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidCredibilityScore",
+      "inputs": [
+        {
+          "type": "uint8",
+          "name": "score"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidShortString",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidSignature",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidVerifier",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "RecordNotFound",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "recordId"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "SignatureExpired",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "deadline"
+        },
+        {
+          "type": "uint256",
+          "name": "currentTimestamp"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "StringTooLong",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "str"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "EIP712DomainChanged",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "VerificationRecorded",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "recordId",
+          "indexed": true
+        },
+        {
+          "type": "bytes32",
+          "name": "articleKey",
+          "indexed": true
+        },
+        {
+          "type": "bytes32",
+          "name": "contentHash",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "verifier",
+          "indexed": false
+        },
+        {
+          "type": "uint8",
+          "name": "credibilityScore",
+          "indexed": false
+        },
+        {
+          "type": "uint24",
+          "name": "revision",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "ipfsCid",
+          "indexed": false
+        },
+        {
+          "type": "uint64",
+          "name": "timestamp",
+          "indexed": false
+        },
+        {
+          "type": "address",
+          "name": "relayer",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "VERIFICATION_TYPEHASH",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "checkArticleChange",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        },
+        {
+          "type": "bytes32",
+          "name": "currentContentHash"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": "exists"
+        },
+        {
+          "type": "bool",
+          "name": "modified"
+        },
+        {
+          "type": "uint256",
+          "name": "latestRecordId"
+        },
+        {
+          "type": "bytes32",
+          "name": "latestContentHash"
+        },
+        {
+          "type": "uint256",
+          "name": "revisionCount"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "domainSeparator",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "eip712Domain",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes1",
+          "name": "fields"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "uint256",
+          "name": "chainId"
+        },
+        {
+          "type": "address",
+          "name": "verifyingContract"
+        },
+        {
+          "type": "bytes32",
+          "name": "salt"
+        },
+        {
+          "type": "uint256[]",
+          "name": "extensions"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getArticleHistory",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256[]",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getArticleRecords",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple[]",
+          "name": "records",
+          "components": [
+            {
+              "type": "uint256",
+              "name": "recordId"
+            },
+            {
+              "type": "bytes32",
+              "name": "articleKey"
+            },
+            {
+              "type": "bytes32",
+              "name": "contentHash"
+            },
+            {
+              "type": "address",
+              "name": "verifier"
+            },
+            {
+              "type": "uint8",
+              "name": "credibilityScore"
+            },
+            {
+              "type": "uint64",
+              "name": "timestamp"
+            },
+            {
+              "type": "uint24",
+              "name": "revision"
+            },
+            {
+              "type": "string",
+              "name": "ipfsCid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getArticleRevisionCount",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getLatestRecord",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "",
+          "components": [
+            {
+              "type": "uint256",
+              "name": "recordId"
+            },
+            {
+              "type": "bytes32",
+              "name": "articleKey"
+            },
+            {
+              "type": "bytes32",
+              "name": "contentHash"
+            },
+            {
+              "type": "address",
+              "name": "verifier"
+            },
+            {
+              "type": "uint8",
+              "name": "credibilityScore"
+            },
+            {
+              "type": "uint64",
+              "name": "timestamp"
+            },
+            {
+              "type": "uint24",
+              "name": "revision"
+            },
+            {
+              "type": "string",
+              "name": "ipfsCid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getRecord",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "recordId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "",
+          "components": [
+            {
+              "type": "uint256",
+              "name": "recordId"
+            },
+            {
+              "type": "bytes32",
+              "name": "articleKey"
+            },
+            {
+              "type": "bytes32",
+              "name": "contentHash"
+            },
+            {
+              "type": "address",
+              "name": "verifier"
+            },
+            {
+              "type": "uint8",
+              "name": "credibilityScore"
+            },
+            {
+              "type": "uint64",
+              "name": "timestamp"
+            },
+            {
+              "type": "uint24",
+              "name": "revision"
+            },
+            {
+              "type": "string",
+              "name": "ipfsCid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getRecordsByContentHash",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "contentHash"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256[]",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "nonces",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "recordVerification",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        },
+        {
+          "type": "bytes32",
+          "name": "contentHash"
+        },
+        {
+          "type": "string",
+          "name": "ipfsCid"
+        },
+        {
+          "type": "uint8",
+          "name": "credibilityScore"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": "recordId"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "recordVerificationMeta",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "articleKey"
+        },
+        {
+          "type": "bytes32",
+          "name": "contentHash"
+        },
+        {
+          "type": "string",
+          "name": "ipfsCid"
+        },
+        {
+          "type": "uint8",
+          "name": "credibilityScore"
+        },
+        {
+          "type": "address",
+          "name": "verifier"
+        },
+        {
+          "type": "uint256",
+          "name": "deadline"
+        },
+        {
+          "type": "bytes",
+          "name": "signature"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": "recordId"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "totalRecords",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    }
+  ]
+}

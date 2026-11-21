@@ -3,7 +3,8 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 require("dotenv").config({ override: true });
 
-const rawKey = (process.env.DEPLOYER_PRIVATE_KEY || "").trim();
+// Match root .env.example (RELAYER_PRIVATE_KEY) while keeping DEPLOYER_PRIVATE_KEY as fallback.
+const rawKey = (process.env.RELAYER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || "").trim();
 const accounts = rawKey ? [rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`] : [];
 
 /** @type import('hardhat/config').HardhatUserConfig */

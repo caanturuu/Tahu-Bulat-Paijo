@@ -675,8 +675,8 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Section: Redesigned based on Image 1 Reference */}
-          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-8 sm:py-14 animate-in fade-in duration-300">
+          {/* Verification Result Section */}
+          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-8 sm:py-14 animate-in fade-in duration-300 overflow-hidden">
             <ResultCard
               data={result}
               notice={serverNotice}

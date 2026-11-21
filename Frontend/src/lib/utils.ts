@@ -104,7 +104,52 @@ export function simulateNewsValidation(query: string): VerificationResult {
   const mockIpfs = "QmZtmD2qJ9wXk8L5vP3mR7tY1uN4bE6c8d0e2f3h89AB";
   const mockTx = "0xa8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e234567";
 
-  // Kasus 1: Terindikasi Hoaks / Fabricated Content
+  // Deteksi Tautan Privat / Email / Non-Publik (e.g. mail.google.com, gmail, localhost)
+  const isPrivateOrEmail =
+    lower.includes("mail.google.com") ||
+    lower.includes("gmail.com") ||
+    lower.includes("web.whatsapp.com") ||
+    lower.includes("localhost") ||
+    lower.includes("127.0.0.1") ||
+    lower.includes("drive.google.com") ||
+    lower.includes("inbox");
+
+  if (isPrivateOrEmail) {
+    return {
+      url: cleanQuery.startsWith("http") ? cleanQuery : "",
+      title: cleanQuery,
+      publisher: "Layanan Komunikasi Pribadi (Non-Publik)",
+      publishedDate: new Date().toISOString(),
+      articleHash: mockHash,
+      credibilityScore: 45,
+      status: "QUESTIONABLE",
+      summary: "Tautan yang dimasukkan mengarah ke kotak masuk pribadi (email/pesan privat), bukan artikel publikasi media daring terbuka. Sistem verifikasi tidak dapat mengakses konten terotentikasi akun privat.",
+      narrative: `Pengguna memasukkan tautan: "${cleanQuery}". Tautan ini mengarah ke layanan pesan/email privat yang memerlukan kredensial login akun pribadi dan tidak beredar sebagai publikasi berita terbuka bagi masyarakat.`,
+      explanation: `Tim Pemeriksa Fakta mendeteksi bahwa tautan ini merupakan alamat URL kotak masuk (inbox) atau layanan privat. Konsorsium jurnalisme cek fakta dan audit blockchain memfokuskan verifikasi pada artikel portal berita daring, regulasi lembaran negara, dan klaim informasi publik yang viral.`,
+      conclusion: `Faktanya, tautan tersebut adalah TAUTAN PRIBADI / NON-PUBLIK (bukan artikel berita publik). Untuk memeriksa kebenaran isu, silakan masukkan URL portal berita media daring atau salin naskah teks klaim berita yang ingin diverifikasi.`,
+      keyFindings: [
+        "Kategori Input: Terdeteksi sebagai tautan pesan/email privat, bukan publikasi berita umum.",
+        "Aksesibilitas Data: Konten terproteksi otentikasi akun dan tidak dapat diaudit di ruang publik.",
+        "Saran Pengujian: Gunakan tautan artikel berita dari portal resmi atau salin langsung teks klaim berita.",
+      ],
+      claimsReview: [
+        {
+          claim: cleanQuery,
+          claimant: "Tautan Layanan Komunikasi Privat",
+          claimDate: new Date().toISOString().split("T")[0],
+          reviewPublisher: "VeritasChain Input Guard",
+          reviewUrl: "",
+          rating: "Tautan Privat / Perlu Verifikasi Teks",
+        },
+      ],
+      ipfsCid: mockIpfs,
+      txHash: mockTx,
+      network: "Base Sepolia (Layer-2)",
+      timestamp,
+    };
+  }
+
+  // Kasus 1: Terindikasi Hoaks / Fabricated Content (Skor 0-40)
   const isHoax =
     lower.includes("hoax") ||
     lower.includes("hoaks") ||
@@ -149,11 +194,10 @@ export function simulateNewsValidation(query: string): VerificationResult {
     };
   }
 
-  // Kasus 2: Terverifikasi Benar / Valid
+  // Kasus 2: Terverifikasi Benar / Valid (Skor >= 71)
   const isValid =
     lower.includes("resmi") ||
     lower.includes("valid") ||
-    lower.includes("benar") ||
     lower.includes("kemenkeu") ||
     lower.includes("presiden") ||
     lower.includes("pemerintah") ||
@@ -197,7 +241,7 @@ export function simulateNewsValidation(query: string): VerificationResult {
     };
   }
 
-  // Kasus 3: Meragukan / Konten Menyesatkan (Misleading Content - Sesuai Lampiran Pengguna)
+  // Kasus 3: Meragukan / Konten Menyesatkan (Misleading Content, Skor 62)
   return {
     url: cleanQuery.startsWith("http") ? cleanQuery : "",
     title: cleanQuery.startsWith("http") ? cleanQuery : (cleanQuery || "Harga nasi naik 200%"),

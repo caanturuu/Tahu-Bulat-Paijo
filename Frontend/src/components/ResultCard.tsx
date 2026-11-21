@@ -10,7 +10,6 @@ import {
   Copy,
   Check,
   ShieldCheck,
-  History,
 } from "lucide-react";
 import { VerificationResult } from "@/types";
 import { formatDate, shortenHash } from "@/lib/utils";
@@ -32,28 +31,41 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  // Status mapping
+  // 1. Rigorous, robust status classification
   const isPopulated = Boolean(data);
   const score = data?.credibilityScore ?? 0;
+  const statusStr = (data?.status || "").toUpperCase();
   const ratingLower = (data?.claimsReview?.[0]?.rating || "").toLowerCase();
 
+  // Hoax check (0 - 40 or explicit hoax rating)
   const isHoax =
     isPopulated &&
-    (score <= 40 ||
+    (statusStr === "HOAX" ||
+      score <= 40 ||
       ratingLower.includes("palsu") ||
-      ratingLower.includes("salah") ||
       ratingLower.includes("hoaks") ||
-      ratingLower.includes("hoax"));
+      ratingLower.includes("hoax") ||
+      (ratingLower.includes("salah") && !ratingLower.includes("sebagian")));
 
+  // Questionable / Misleading check (41 - 70 or explicit questionable/misleading rating)
+  const isMeragukan =
+    isPopulated &&
+    !isHoax &&
+    (statusStr === "QUESTIONABLE" ||
+      (score >= 41 && score <= 70) ||
+      ratingLower.includes("menyesatkan") ||
+      ratingLower.includes("meragukan") ||
+      ratingLower.includes("sebagian") ||
+      ratingLower.includes("belum final") ||
+      ratingLower.includes("privat") ||
+      ratingLower.includes("bukan berita"));
+
+  // Valid / Benar check (ONLY when score >= 71 or status is strictly VALID, never when < 71)
   const isBenar =
     isPopulated &&
     !isHoax &&
-    (score >= 71 ||
-      ratingLower.includes("benar") ||
-      ratingLower.includes("valid") ||
-      ratingLower.includes("fakta"));
-
-  const isMeragukan = isPopulated && !isHoax && !isBenar;
+    !isMeragukan &&
+    (statusStr === "VALID" || score >= 71);
 
   // Validation verdict styling
   let verdictTitle = "BELUM DIUJI";
@@ -74,15 +86,6 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     barColor = "bg-rose-600";
     barWidth = `${Math.max(score, 14)}%`;
     VerdictIcon = AlertOctagon;
-  } else if (isBenar) {
-    verdictTitle = "FAKTA VALID / TERKONFIRMASI";
-    verdictSubtitle = "VERIFIED ACCURATE CONTENT";
-    verdictBadgeBg = "bg-emerald-100 border-emerald-300 text-emerald-800";
-    verdictCardBg = "bg-emerald-50/40 border-emerald-200/90";
-    scoreColor = "text-emerald-700";
-    barColor = "bg-emerald-600";
-    barWidth = `${Math.max(score, 14)}%`;
-    VerdictIcon = CheckCircle2;
   } else if (isMeragukan) {
     verdictTitle = "KONTEN MENYESATKAN";
     verdictSubtitle = "MISLEADING CONTENT";
@@ -92,6 +95,15 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     barColor = "bg-amber-500";
     barWidth = `${Math.max(score, 14)}%`;
     VerdictIcon = AlertTriangle;
+  } else if (isBenar) {
+    verdictTitle = "FAKTA VALID / TERKONFIRMASI";
+    verdictSubtitle = "VERIFIED ACCURATE CONTENT";
+    verdictBadgeBg = "bg-emerald-100 border-emerald-300 text-emerald-800";
+    verdictCardBg = "bg-emerald-50/40 border-emerald-200/90";
+    scoreColor = "text-emerald-700";
+    barColor = "bg-emerald-600";
+    barWidth = `${Math.max(score, 14)}%`;
+    VerdictIcon = CheckCircle2;
   }
 
   // Published date & on-chain data
@@ -126,7 +138,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   // 1. Narasi Text
   const narrativeText = isPopulated
     ? data?.narrative ||
-      `Beredar di ${data?.publisher || "media sosial dan media daring publik"} dengan judul/klaim: "${data?.title}". Informasi ini menyebar secara viral melalui tangkapan layar dan pesan terusan tanpa rujukan sumber resmi yang jelas.`
+      `Beredar di ${data?.publisher || "media sosial dan media daring publik"} dengan klaim: "${data?.title}". Informasi ini menyebar secara viral melalui tangkapan layar dan pesan terusan tanpa rujukan sumber resmi yang jelas.`
     : "Klaim berita atau tangkapan layar yang beredar di media sosial akan ditampilkan di sini sebagai rujukan narasi awal yang diperiksa.";
 
   // 2. Penjelasan Text & Points
@@ -193,18 +205,18 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     : "Kesimpulan definitif dari tim pemeriksa fakta akan disajikan di sini untuk memberikan kepastian dan klarifikasi yang mudah dipahami bagi pembaca.";
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 text-slate-900 shadow-xs transition-all duration-300">
+    <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 text-slate-900 shadow-xs transition-all duration-300 overflow-hidden">
       {/* ================= 1. BAGIAN ATAS: VALIDASI ================= */}
-      <section aria-labelledby="section-validasi">
+      <section aria-labelledby="section-validasi" className="w-full overflow-hidden">
         {/* Top Meta Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4 mb-6">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
+          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 shrink-0">
               <ShieldCheck className="h-4 w-4 text-[#185adb]" strokeWidth={2} />
               Hasil Pemeriksaan Fakta & Audit Blockchain
             </span>
             {notice && (
-              <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 border border-blue-200/70">
+              <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 border border-blue-200/70 truncate max-w-md">
                 {notice}
               </span>
             )}
@@ -214,24 +226,24 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             <button
               type="button"
               onClick={onReset}
-              className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 cursor-pointer self-start sm:self-auto hover:underline underline-offset-2"
+              className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 cursor-pointer self-start sm:self-auto hover:underline underline-offset-2 shrink-0"
             >
               ← Kembali ke kartu kosong
             </button>
           ) : (
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-slate-400 font-medium shrink-0">
               Card Kosong (Siap Verifikasi)
             </span>
           )}
         </div>
 
-        {/* Big Visual Verdict Card (Matching the user's uploaded image stamp) */}
+        {/* Big Visual Verdict Card */}
         <div
-          className={`rounded-2xl border p-5 sm:p-7 transition-all ${verdictCardBg}`}
+          className={`rounded-2xl border p-5 sm:p-7 transition-all w-full overflow-hidden ${verdictCardBg}`}
         >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            {/* Left: Stamp Badge & Claim Headline */}
-            <div className="space-y-3 flex-1">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 w-full">
+            {/* Left: Stamp Badge & Claim Headline (min-w-0 prevents flex blowout) */}
+            <div className="space-y-3 flex-1 min-w-0 max-w-full overflow-hidden">
               {/* Verdict Stamp */}
               <div
                 className={`inline-flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-2xs font-bold ${verdictBadgeBg}`}
@@ -247,12 +259,12 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
                 </div>
               </div>
 
-              {/* Main Claim Title */}
-              <h2 className="text-xl sm:text-2xl lg:text-[26px] font-bold text-slate-900 leading-snug tracking-tight">
+              {/* Main Claim Title (break-all prevents unbroken URLs from breaking the box) */}
+              <h2 className="text-xl sm:text-2xl lg:text-[24px] font-bold text-slate-900 leading-snug tracking-tight break-all [overflow-wrap:anywhere] max-w-full">
                 {isPopulated ? `“${data?.title}”` : "“Menunggu Kueri Berita yang Ingin Anda Periksa”"}
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed break-words">
                 {isPopulated
                   ? `Beredar di ${data?.publisher || "media daring publik"}. Diverifikasi oleh konsorsium jurnalisme bersertifikasi IFCN.`
                   : "Masukkan tautan portal berita, ketik isu yang beredar, atau unggah tangkapan layar pada kolom pencarian di atas."}
@@ -260,7 +272,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </div>
 
             {/* Right: Credibility Score & Progress Bar */}
-            <div className="flex flex-col items-start lg:items-end justify-center rounded-xl bg-white/80 p-4 border border-slate-200/80 shrink-0 w-full lg:w-56 shadow-2xs">
+            <div className="flex flex-col items-start lg:items-end justify-center rounded-xl bg-white/90 p-4 border border-slate-200/80 shrink-0 w-full sm:w-60 shadow-2xs">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Skor Kredibilitas
               </span>
@@ -291,13 +303,13 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </div>
 
           {/* Bottom Bar inside Validation Hero: Verifier & Cryptographic On-Chain Proof */}
-          <div className="mt-6 pt-5 border-t border-slate-200/70 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="mt-6 pt-5 border-t border-slate-200/70 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs w-full overflow-hidden">
             {/* Fact-checker details */}
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
                 Pemeriksa & Penilaian
               </span>
-              <div className="font-semibold text-slate-800">
+              <div className="font-semibold text-slate-800 truncate">
                 {reviewPublisher}
               </div>
               <div className="text-slate-600 mt-0.5">
@@ -316,11 +328,11 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </div>
 
             {/* Blockchain On-Chain & IPFS Proof */}
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
                 Bukti Audit On-Chain (Base L2)
               </span>
-              <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-700">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[11px] text-slate-700">
                 <div className="flex items-center gap-1">
                   <span className="text-slate-400 font-sans">Hash:</span>
                   <span>{displayHash}</span>
@@ -377,7 +389,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       </section>
 
       {/* ================= 2. BAGIAN NARASI ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100" aria-labelledby="section-narasi">
+      <section className="mt-8 pt-8 border-t border-slate-100 w-full overflow-hidden" aria-labelledby="section-narasi">
         <div className="mb-3">
           <h3
             id="section-narasi"
@@ -391,9 +403,9 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
         </div>
 
         {/* Narrative Quote Block */}
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 sm:p-6 border-l-4 border-l-slate-400">
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 sm:p-6 border-l-4 border-l-slate-400 w-full overflow-hidden">
           <p
-            className={`text-sm sm:text-base leading-relaxed ${
+            className={`text-sm sm:text-base leading-relaxed break-all [overflow-wrap:anywhere] ${
               isPopulated ? "text-slate-800 font-normal" : "text-slate-400 italic"
             }`}
           >
@@ -401,13 +413,13 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </p>
 
           {data?.url && (
-            <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="font-semibold text-slate-600">Tautan Berita:</span>
+            <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs text-slate-500 break-all">
+              <span className="font-semibold text-slate-600 shrink-0">Tautan Berita:</span>
               <a
                 href={data.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#185adb] hover:underline break-all inline-flex items-center gap-1"
+                className="text-[#185adb] hover:underline break-all [overflow-wrap:anywhere] inline-flex items-center gap-1"
               >
                 <span>{data.url}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -418,7 +430,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       </section>
 
       {/* ================= 3. BAGIAN PENJELASAN ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100" aria-labelledby="section-penjelasan">
+      <section className="mt-8 pt-8 border-t border-slate-100 w-full overflow-hidden" aria-labelledby="section-penjelasan">
         <div className="mb-4">
           <h3
             id="section-penjelasan"
@@ -431,10 +443,10 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 w-full overflow-hidden">
           {/* Main Explanation Paragraph */}
           <p
-            className={`text-sm sm:text-base leading-relaxed ${
+            className={`text-sm sm:text-base leading-relaxed break-all [overflow-wrap:anywhere] ${
               isPopulated ? "text-slate-800" : "text-slate-400 italic"
             }`}
           >
@@ -455,11 +467,11 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white border border-slate-200 font-mono text-xs font-bold text-slate-600 shrink-0 mt-0.5">
                     {item.num}
                   </span>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h5 className="font-bold text-slate-900 leading-snug">
                       {item.title}
                     </h5>
-                    <p className="text-slate-600 leading-relaxed mt-0.5">
+                    <p className="text-slate-600 leading-relaxed mt-0.5 break-all [overflow-wrap:anywhere]">
                       {item.desc}
                     </p>
                   </div>
@@ -482,7 +494,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       </section>
 
       {/* ================= 4. BAGIAN KESIMPULAN ================= */}
-      <section className="mt-8 pt-8 border-t border-slate-100" aria-labelledby="section-kesimpulan">
+      <section className="mt-8 pt-8 border-t border-slate-100 w-full overflow-hidden" aria-labelledby="section-kesimpulan">
         <div className="mb-3">
           <h3
             id="section-kesimpulan"
@@ -497,13 +509,13 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
 
         {/* Highlighted Conclusion Card */}
         <div
-          className={`rounded-2xl border p-5 sm:p-6 transition-all ${
+          className={`rounded-2xl border p-5 sm:p-6 transition-all w-full overflow-hidden ${
             isHoax
               ? "bg-rose-50/50 border-rose-200/90 text-rose-950"
-              : isBenar
-              ? "bg-emerald-50/50 border-emerald-200/90 text-emerald-950"
               : isMeragukan
               ? "bg-amber-50/50 border-amber-200/90 text-amber-950"
+              : isBenar
+              ? "bg-emerald-50/50 border-emerald-200/90 text-emerald-950"
               : "bg-slate-50/70 border-slate-200 text-slate-600"
           }`}
         >
@@ -511,17 +523,17 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             <div className="mt-0.5 shrink-0">
               {isHoax ? (
                 <AlertOctagon className="h-5 w-5 text-rose-600" strokeWidth={2.2} />
-              ) : isBenar ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
               ) : isMeragukan ? (
                 <AlertTriangle className="h-5 w-5 text-amber-600" strokeWidth={2.2} />
+              ) : isBenar ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
               ) : (
                 <FileSearch className="h-5 w-5 text-slate-400" strokeWidth={2} />
               )}
             </div>
 
             <p
-              className={`text-sm sm:text-base leading-relaxed ${
+              className={`text-sm sm:text-base leading-relaxed break-all [overflow-wrap:anywhere] ${
                 isPopulated ? "font-medium" : "italic text-slate-500"
               }`}
             >

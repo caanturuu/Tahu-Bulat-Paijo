@@ -69,13 +69,13 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
 {{
   "isNews": true,
   "notNewsReason": null,
-  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat terkait isu ini, biasanya diawali seperti "Beredar informasi/klaim bahwa..."),
-  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya, membantah disinformasi atau menjelaskan konteks validitas artikel ini secara runtut dan lengkap),
-  "kesimpulan": (string: kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini, beserta kategori hoaks/faktanya),
+  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat dalam 1-2 kalimat, diawali seperti "Beredar informasi/klaim bahwa..."),
+  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya dalam 2-3 kalimat padat membantah disinformasi atau mengonfirmasi fakta),
+  "kesimpulan": (string: 1 kalimat kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini beserta kategori hoaks/faktanya),
   "credibilityScore": (integer antara 0 sampai 100, di mana 0 = mutlak hoaks/palsu, 100 = fakta valid dan terverifikasi resmi),
   "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika skor 40-69, "HOAX" jika skor < 40),
-  "summary": (string: ringkasan 2-3 kalimat mengenai hasil analisis),
-  "keyFindings": (array of string: persis 3 poin temuan utama yang berbasis fakta dan data)
+  "summary": (string: ringkasan inti 1-2 kalimat mengenai hasil analisis),
+  "keyFindings": (array of string: persis 3 poin temuan utama yang ringkas, padat, berbasis fakta dan data)
 }}
 
 [JUDUL ARTIKEL / KLAIM]
@@ -88,7 +88,7 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
 {json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di basis data."}
 """
 
-    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.8-flash"]
+    models_to_try = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]
     for model_name in models_to_try:
         try:
             response = client.models.generate_content(
@@ -96,7 +96,8 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    temperature=0.2,
+                    temperature=0.1,
+                    max_output_tokens=500,
                 ),
             )
 

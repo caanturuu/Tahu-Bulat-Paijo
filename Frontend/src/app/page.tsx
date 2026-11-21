@@ -271,6 +271,12 @@ export default function Home() {
     setIsLoading(true);
     setServerNotice(null);
 
+    // Immediate smooth scroll feedback so user sees active verification right away
+    setTimeout(() => {
+      const el = document.getElementById("verification-result-section");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+
     try {
       // Connect to real FastAPI backend if running
       const res = await fetch("http://localhost:8000/api/verify", {
@@ -298,11 +304,11 @@ export default function Home() {
       );
     } finally {
       setIsLoading(false);
-      // Scroll smoothly to results section
+      // Final re-align smoothly to results section
       setTimeout(() => {
         const el = document.getElementById("verification-result-section");
         if (el) el.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      }, 50);
     }
   };
 
@@ -806,7 +812,7 @@ export default function Home() {
               )}
 
               {/* ResultCard: Displays verified data */}
-              <ResultCard data={result} />
+              <ResultCard data={result} isLoading={isLoading} />
             </section>
           )}
         </>

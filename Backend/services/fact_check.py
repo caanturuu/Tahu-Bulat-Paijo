@@ -22,10 +22,9 @@ async def search_fact_checks(query: str, max_results: int = 5) -> List[Dict[str,
     }
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=2.0) as client:
             response = await client.get(GOOGLE_FACT_CHECK_URL, params=params)
             if response.status_code != 200:
-                # Retry with general query without language code filter
                 params.pop("languageCode", None)
                 response = await client.get(GOOGLE_FACT_CHECK_URL, params=params)
 

@@ -22,9 +22,59 @@ import { DiffViewer } from "./DiffViewer";
 
 interface ResultCardProps {
   data?: VerificationResult | null;
+  isLoading?: boolean;
 }
 
-export function ResultCard({ data }: ResultCardProps) {
+export function ResultCard({ data, isLoading }: ResultCardProps) {
+  // If loading, render high-speed animated skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 pb-2 border-b border-slate-200/80 dark:border-zinc-800">
+          <div className="flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300 animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-blue-600 animate-ping" />
+                MEMPROSES VERIFIKASI
+              </span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                Pemeriksaan Cek Fakta & AI
+              </span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-zinc-200 leading-snug pt-1">
+              Sedang menganalisis klaim dan memverifikasi integritas berita...
+            </h3>
+
+            <p className="text-xs text-slate-500 dark:text-zinc-400 pt-0.5 leading-relaxed">
+              Memeriksa basis data cek fakta resmi MAFINDO, melakukan penalaran semantik, dan menyiapkan audit hash desentralisasi.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-blue-200/70 bg-blue-50/40 p-4 sm:p-5 w-full sm:w-44 shrink-0 shadow-2xs dark:border-blue-950 dark:bg-blue-950/20 text-center animate-pulse">
+            <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+              Menghitung Skor...
+            </span>
+            <div className="my-1.5 flex items-baseline justify-center">
+              <span className="text-4xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">
+                ...
+              </span>
+            </div>
+            <div className="w-full bg-blue-200/50 rounded-full h-2 overflow-hidden dark:bg-blue-900/40">
+              <div className="bg-blue-600 h-full rounded-full w-2/3 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-28 rounded-xl bg-slate-100 dark:bg-zinc-800/60 animate-pulse p-4 border border-slate-200/60 dark:border-zinc-800" />
+          <div className="h-28 rounded-xl bg-slate-100 dark:bg-zinc-800/60 animate-pulse p-4 border border-slate-200/60 dark:border-zinc-800" />
+          <div className="h-28 rounded-xl bg-slate-100 dark:bg-zinc-800/60 animate-pulse p-4 border border-slate-200/60 dark:border-zinc-800" />
+        </div>
+      </div>
+    );
+  }
+
   // If data is empty / null, render the clean Card Kosong (Empty State)
   if (!data) {
     return (

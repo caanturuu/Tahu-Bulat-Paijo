@@ -164,36 +164,16 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
   },
 };
 
-// Placeholder Audit History records (Dummy transactions removed)
-const AUDIT_HISTORY_PLACEHOLDERS = [
-  {
-    id: "tx-slot-001",
-    title: "[Slot Riwayat Audit On-Chain #1]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-  {
-    id: "tx-slot-002",
-    title: "[Slot Riwayat Audit On-Chain #2]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-  {
-    id: "tx-slot-003",
-    title: "[Slot Riwayat Audit On-Chain #3]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-];
+// Audit History record type
+interface AuditHistoryRecord {
+  id: string;
+  title: string;
+  score: string;
+  status: string;
+  hash: string;
+  date: string;
+  tx: string;
+}
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -201,6 +181,7 @@ export default function Home() {
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [serverNotice, setServerNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("Cek Fakta");
+  const [auditHistory, setAuditHistory] = useState<AuditHistoryRecord[]>([]);
 
   // Rotating background state (15 seconds rotation)
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -250,12 +231,36 @@ export default function Home() {
       if (res.ok) {
         const liveData = await res.json();
         setResult(liveData);
+        setAuditHistory((prev) => [
+          {
+            id: `audit-${Date.now()}`,
+            title: query.trim(),
+            score: `${liveData.credibilityScore ?? 0}/100`,
+            status: liveData.claimsReview?.[0]?.rating || liveData.status || "TERVERIFIKASI",
+            hash: liveData.articleHash ? `${liveData.articleHash.slice(0, 10)}...${liveData.articleHash.slice(-6)}` : "0x7f83b1...6d9069",
+            date: "Hari Ini, " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+            tx: liveData.network || "Base Sepolia",
+          },
+          ...prev,
+        ]);
       } else {
         const simulated = simulateNewsValidation(query.trim());
         setResult(simulated);
         setServerNotice(
           "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
         );
+        setAuditHistory((prev) => [
+          {
+            id: `audit-${Date.now()}`,
+            title: query.trim(),
+            score: `${simulated.credibilityScore}/100`,
+            status: simulated.claimsReview?.[0]?.rating || simulated.status,
+            hash: simulated.articleHash ? `${simulated.articleHash.slice(0, 10)}...${simulated.articleHash.slice(-6)}` : "0x7f83b1...6d9069",
+            date: "Hari Ini, " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+            tx: simulated.network,
+          },
+          ...prev,
+        ]);
       }
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -264,6 +269,18 @@ export default function Home() {
       setServerNotice(
         "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
       );
+      setAuditHistory((prev) => [
+        {
+          id: `audit-${Date.now()}`,
+          title: query.trim(),
+          score: `${simulated.credibilityScore}/100`,
+          status: simulated.claimsReview?.[0]?.rating || simulated.status,
+          hash: simulated.articleHash ? `${simulated.articleHash.slice(0, 10)}...${simulated.articleHash.slice(-6)}` : "0x7f83b1...6d9069",
+          date: "Hari Ini, " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+          tx: simulated.network,
+        },
+        ...prev,
+      ]);
     } finally {
       setIsLoading(false);
       // Scroll smoothly to results section
@@ -715,53 +732,73 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/90">
-            {/* Informative placeholder top banner */}
-            <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center gap-2">
-              <span className="font-semibold text-slate-600 dark:text-zinc-300">Tampilan Placeholder:</span>
-              <span>Belum ada transaksi audit on-chain permanen yang dicatat. Riwayat hash artikel dan IPFS CID akan otomatis terisi saat proses verifikasi berita dijalankan.</span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-                  <tr>
-                    <th className="p-3.5 sm:p-4">Judul Artikel</th>
-                    <th className="p-3.5 sm:p-4">Skor AI</th>
-                    <th className="p-3.5 sm:p-4">Status</th>
-                    <th className="p-3.5 sm:p-4 hidden sm:table-cell">Article Hash</th>
-                    <th className="p-3.5 sm:p-4">Waktu Audit</th>
-                    <th className="p-3.5 sm:p-4">Transaksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
-                  {AUDIT_HISTORY_PLACEHOLDERS.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
-                      <td className="p-3.5 sm:p-4 font-medium text-slate-400 dark:text-zinc-500 max-w-xs truncate">
-                        {row.title}
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-400 dark:text-zinc-500">
-                        {row.score}
-                      </td>
-                      <td className="p-3.5 sm:p-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-400 dark:text-zinc-500 hidden sm:table-cell">
-                        {row.hash}
-                      </td>
-                      <td className="p-3.5 sm:p-4 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-                        {row.date}
-                      </td>
-                      <td className="p-3.5 sm:p-4 font-mono text-xs text-slate-400 dark:text-zinc-500">
-                        {row.tx}
-                      </td>
+          <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/90">
+            {auditHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 sm:py-28 px-4 text-center">
+                {/* Centered No-History Symbol */}
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 dark:bg-zinc-800/80 dark:border-zinc-700/60 text-slate-400 dark:text-zinc-500 mb-4 shadow-2xs">
+                  <History className="h-8 w-8 sm:h-10 sm:w-10 stroke-[1.5]" />
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-zinc-100">
+                  Tidak Ada Riwayat
+                </h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-zinc-400 max-w-sm">
+                  Belum ada catatan verifikasi berita atau audit blockchain on-chain yang tersimpan.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("Cek Fakta");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[#185adb] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all"
+                >
+                  <Search className="h-3.5 w-3.5" strokeWidth={2} />
+                  <span>Periksa Berita Sekarang</span>
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+                    <tr>
+                      <th className="p-3.5 sm:p-4">Judul Artikel</th>
+                      <th className="p-3.5 sm:p-4">Skor AI</th>
+                      <th className="p-3.5 sm:p-4">Status</th>
+                      <th className="p-3.5 sm:p-4 hidden sm:table-cell">Article Hash</th>
+                      <th className="p-3.5 sm:p-4">Waktu Audit</th>
+                      <th className="p-3.5 sm:p-4">Transaksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
+                    {auditHistory.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="p-3.5 sm:p-4 font-medium text-slate-800 dark:text-zinc-200 max-w-xs truncate">
+                          {row.title}
+                        </td>
+                        <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-800 dark:text-zinc-200">
+                          {row.score}
+                        </td>
+                        <td className="p-3.5 sm:p-4">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-500 dark:text-zinc-400 hidden sm:table-cell">
+                          {row.hash}
+                        </td>
+                        <td className="p-3.5 sm:p-4 text-[11px] text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                          {row.date}
+                        </td>
+                        <td className="p-3.5 sm:p-4 font-mono text-xs text-blue-600 dark:text-blue-400">
+                          {row.tx}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </section>
       )}

@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import {
+  Moon,
+  Sun,
   Wallet,
   LogOut,
   Menu,
   X,
   ShieldCheck,
   ExternalLink,
-  Globe,
 } from "lucide-react";
 import { shortenAddress } from "@/lib/utils";
 
@@ -20,8 +21,6 @@ interface NavbarProps {
   isLoggedIn?: boolean;
   userEmail?: string;
   onLogout?: () => void;
-  currentLang?: "id" | "en";
-  onLanguageChange?: (lang: "id" | "en") => void;
 }
 
 export function Navbar({
@@ -31,46 +30,57 @@ export function Navbar({
   isLoggedIn = false,
   userEmail,
   onLogout,
-  currentLang = "id",
-  onLanguageChange,
 }: NavbarProps) {
   const { authenticated, user, logout: privyLogout } = usePrivy();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [lang, setLang] = useState<"id" | "en">(currentLang);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     setCurrentTab(activeTab);
   }, [activeTab]);
 
   useEffect(() => {
-    // Reset any legacy dark theme and keep default light mode
-    document.documentElement.classList.remove("dark");
-    document.body.classList.remove("dark");
-    localStorage.removeItem("theme");
+    // Check initial dark mode from localStorage or system preference
+    const savedTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldBeDark = savedTheme === "dark" || (!savedTheme && systemPrefersDark);
 
-    const savedLang = localStorage.getItem("app_lang") as "id" | "en";
-    if (savedLang === "id" || savedLang === "en") {
-      setLang(savedLang);
+    if (shouldBeDark) {
+      document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
+      setIsDarkMode(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
+      setIsDarkMode(false);
     }
   }, []);
 
-  const handleLanguageChange = (newLang: "id" | "en") => {
-    setLang(newLang);
-    localStorage.setItem("app_lang", newLang);
-    if (onLanguageChange) onLanguageChange(newLang);
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
   };
 
   const navItems = [
-    { id: "cek-fakta", label: lang === "en" ? "Fact Check" : "Cek Fakta", tab: "Cek Fakta" },
-    { id: "berita-hoaks", label: lang === "en" ? "Hoax News" : "Berita Hoaks", tab: "Berita Hoaks" },
-    { id: "riwayat", label: lang === "en" ? "Audit History" : "Riwayat", tab: "Riwayat" },
-    { id: "tentang", label: lang === "en" ? "About" : "Tentang", tab: "Tentang" },
+    { id: "cek-fakta", label: "Cek Fakta" },
+    { id: "berita-hoaks", label: "Berita Hoaks" },
+    { id: "riwayat", label: "Riwayat" },
+    { id: "tentang", label: "Tentang" },
   ];
 
-  const handleNavClick = (tabName: string) => {
-    setCurrentTab(tabName);
-    if (onTabChange) onTabChange(tabName);
+  const handleNavClick = (label: string) => {
+    setCurrentTab(label);
+    if (onTabChange) onTabChange(label);
     setMobileMenuOpen(false);
   };
 
@@ -122,11 +132,11 @@ export function Navbar({
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           {navItems.map((item) => {
-            const isActive = currentTab === item.tab;
+            const isActive = currentTab === item.label;
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.tab)}
+                onClick={() => handleNavClick(item.label)}
                 className={`relative py-5 text-sm font-medium transition-colors ${
                   isActive
                     ? "text-[#185adb] font-semibold dark:text-blue-400"
@@ -144,33 +154,25 @@ export function Navbar({
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Language Toggle: Indo & English */}
-          <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold shadow-2xs">
-            <button
-              type="button"
-              onClick={() => handleLanguageChange("id")}
-              className={`rounded-full px-2 sm:px-2.5 py-1 text-[11px] font-bold transition-all ${
-                lang === "id"
-                  ? "bg-white text-[#185adb] shadow-2xs"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-              title="Bahasa Indonesia"
-            >
-              ID
-            </button>
-            <button
-              type="button"
-              onClick={() => handleLanguageChange("en")}
-              className={`rounded-full px-2 sm:px-2.5 py-1 text-[11px] font-bold transition-all ${
-                lang === "en"
-                  ? "bg-white text-[#185adb] shadow-2xs"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-              title="English"
-            >
-              EN
-            </button>
-          </div>
+          {/* Light / Dark Mode Toggle Button (Samping kiri Masuk) */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 shadow-2xs"
+            title={isDarkMode ? "Beralih ke Mode Terang (Light Mode)" : "Beralih ke Mode Gelap (Dark Mode)"}
+          >
+            {isDarkMode ? (
+              <>
+                <Sun className="h-4 w-4 text-amber-400" strokeWidth={1.75} />
+                <span className="hidden sm:inline text-[11px] font-semibold text-amber-300">Light</span>
+              </>
+            ) : (
+              <>
+                <Moon className="h-4 w-4 text-slate-600" strokeWidth={1.75} />
+                <span className="hidden sm:inline text-[11px] font-semibold text-slate-600">Dark</span>
+              </>
+            )}
+          </button>
 
           {/* Masuk / User Status Button */}
           {isUserAuthenticated ? (
@@ -194,7 +196,7 @@ export function Navbar({
               onClick={onOpenLogin}
               className="rounded-full bg-[#185adb] px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all shrink-0"
             >
-              {lang === "en" ? "Sign In" : "Masuk"}
+              Masuk
             </button>
           )}
 
@@ -219,11 +221,11 @@ export function Navbar({
         <div className="border-b border-slate-200 bg-white px-4 py-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex flex-col gap-1">
             {navItems.map((item) => {
-              const isActive = currentTab === item.tab;
+              const isActive = currentTab === item.label;
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleNavClick(item.tab)}
+                  onClick={() => handleNavClick(item.label)}
                   className={`flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     isActive
                       ? "bg-blue-50 font-semibold text-[#185adb] dark:bg-blue-950/40 dark:text-blue-400"
@@ -239,36 +241,24 @@ export function Navbar({
             })}
           </div>
 
-          {/* Mobile Language Toggle Row */}
-          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 px-2">
-            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <Globe className="h-4 w-4 text-slate-500" strokeWidth={1.75} />
-              Bahasa / Language
+          {/* Mobile Dark/Light Mode Row */}
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 dark:border-zinc-800 pt-3 px-2">
+            <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+              {isDarkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
+              Mode {isDarkMode ? "Gelap (Dark)" : "Terang (Light)"}
             </span>
-            <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => handleLanguageChange("id")}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
-                  lang === "id"
-                    ? "bg-white text-[#185adb] shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
+            <button
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isDarkMode ? "bg-[#185adb]" : "bg-slate-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isDarkMode ? "translate-x-6" : "translate-x-1"
                 }`}
-              >
-                ID
-              </button>
-              <button
-                type="button"
-                onClick={() => handleLanguageChange("en")}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
-                  lang === "en"
-                    ? "bg-white text-[#185adb] shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                EN
-              </button>
-            </div>
+              />
+            </button>
           </div>
 
           <div className="mt-3 border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-400">

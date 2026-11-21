@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
   Wallet,
   LogOut,
@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   ExternalLink,
 } from "lucide-react";
-import { shortenAddress } from "@/lib/utils";
+import { shortenAddress, resolveWalletAddress } from "@/lib/utils";
 
 interface NavbarProps {
   activeTab?: string;
@@ -30,6 +30,7 @@ export function Navbar({
   onLogout,
 }: NavbarProps) {
   const { authenticated, user, logout: privyLogout } = usePrivy();
+  const { wallets } = useWallets();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,10 +59,13 @@ export function Navbar({
   };
 
   const isUserAuthenticated = authenticated || isLoggedIn;
-  const userAddress = user?.wallet?.address;
-  const displayIdentity = userAddress
+  const userAddress = resolveWalletAddress(user, wallets);
+  const realEmail = user?.google?.email || user?.email?.address || userEmail;
+  const displayIdentity = realEmail
+    ? realEmail
+    : userAddress
     ? shortenAddress(userAddress)
-    : userEmail || "Validator Terverifikasi";
+    : "Akun Terverifikasi";
 
   const handleLogout = () => {
     if (authenticated) {
@@ -130,9 +134,12 @@ export function Navbar({
           {/* Masuk / User Status Button */}
           {isUserAuthenticated ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
+              <div
+                title={userAddress ? `Wallet: ${userAddress}` : displayIdentity}
+                className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+              >
                 <Wallet className="h-3.5 w-3.5 text-[#185adb] dark:text-blue-400 shrink-0" strokeWidth={1.75} />
-                <span className="font-mono text-[10px] sm:text-[11px] truncate max-w-[90px] sm:max-w-none">
+                <span className="text-[11px] sm:text-xs truncate max-w-[140px] sm:max-w-[220px]">
                   {displayIdentity}
                 </span>
               </div>

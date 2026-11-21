@@ -8,6 +8,26 @@ export function shortenHash(hash?: string, chars = 6): string {
   return `${hash.substring(0, chars + 2)}...${hash.substring(hash.length - chars)}`;
 }
 
+export function resolveWalletAddress(
+  user?: {
+    wallet?: { address?: string };
+    linkedAccounts?: ReadonlyArray<{ type: string }>;
+  } | null,
+  wallets?: ReadonlyArray<{ address?: string; walletClientType?: string }>
+): string {
+  const embedded = wallets?.find((w) => w.walletClientType === "privy")?.address;
+  if (embedded) return embedded;
+  if (wallets?.[0]?.address) return wallets[0].address;
+  if (user?.wallet?.address) return user.wallet.address;
+  const linked = user?.linkedAccounts?.find(
+    (acc): acc is { type: string; address: string } =>
+      acc.type === "wallet" &&
+      "address" in acc &&
+      typeof (acc as { address?: unknown }).address === "string"
+  );
+  return linked?.address || "";
+}
+
 export function formatDate(isoDate?: string): string {
   if (!isoDate) return "-";
   try {

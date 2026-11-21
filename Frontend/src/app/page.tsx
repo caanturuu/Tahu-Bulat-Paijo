@@ -91,8 +91,8 @@ const INDONESIA_NEWS_BACKGROUNDS = [
   },
 ];
 
-// 15 Placeholder slots for Hoax News (Dummy data removed)
-const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 15 }, (_, i) => ({
+// 24 Placeholder slots for Hoax News (Dummy data removed)
+const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 24 }, (_, i) => ({
   id: i + 1,
   tag: "[KATEGORI / HOAKS]",
   title: `[Slot Judul Berita Hoaks Terdeteksi #${i + 1}]`,
@@ -320,7 +320,7 @@ export default function Home() {
 
     const isUsingLive = liveHoaxArticles.length > 0;
     const currentList = isUsingLive ? filteredLiveArticles : filteredPlaceholders;
-    const HOAX_PER_PAGE = 8;
+    const HOAX_PER_PAGE = 12; // 4 columns x 3 rows = 12 cards per page
     const totalItems = currentList.length;
     const totalPages = Math.max(1, Math.ceil(totalItems / HOAX_PER_PAGE));
     const safePage = Math.min(hoaxPage, totalPages);

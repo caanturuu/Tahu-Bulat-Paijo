@@ -488,6 +488,246 @@ REAL_HOAX_ARTICLES = [
         "article_hash": "567890abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123",
         "ipfs_cid": "bafkreif6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
         "tx_hash": "0x234abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678901"
+    },
+    # 17. Kesehatan / Herbal - Jeruk Nipis Kecap TBC
+    {
+        "title": "Klaim Minum Air Jeruk Nipis Hangat Campur Kecap Menghentikan Batuk Berdarah Instan",
+        "category": "Kesehatan",
+        "image_url": "https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=600&auto=format&fit=crop",
+        "source_url": "https://www.kompas.com/cekfakta/read/2023/12/05/jeruk-nipis-kecap-batuk-darah",
+        "views_count": 3890,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Unggahan video pengobatan alternatif mengklaim campuran perasan jeruk nipis dan kecap manis dapat menyembuhkan penyakit tuberkulosis (TBC) dan menghentikan batuk berdarah seketika tanpa perlu konsumsi obat dokter.",
+        "penjelasan": "Perhimpunan Dokter Paru Indonesia (PDPI) menegaskan batuk berdarah merupakan tanda klinis infeksi paru serius yang memerlukan pemeriksaan dahak dan terapi obat antituberkulosis (OAT). Jeruk nipis dan kecap hanya melembapkan faring sementara, bukan membunuh bakteri Mycobacterium tuberculosis.",
+        "kesimpulan": "Klaim jeruk nipis campur kecap menyembuhkan batuk berdarah TBC adalah HOAKS mitos medis berbahaya.",
+        "key_findings": [
+            "Batuk berdarah adalah kegawatdaruratan respirasi yang wajib ditangani dokter spesialis paru.",
+            "Jeruk nipis tidak memiliki daya bunuh terhadap bakteri tuberkulosis di parenkim paru.",
+            "Mengabaikan pengobatan medis berisiko menyebabkan kerusakan paru permanen hingga kematian."
+        ],
+        "claims_review": [
+            {
+                "claim": "Jeruk nipis campur kecap sembuhkan TBC dan hentikan batuk berdarah instan",
+                "claimant": "Video Viral Media Sosial",
+                "reviewPublisher": "Kompas Cek Fakta",
+                "reviewUrl": "https://www.kompas.com/cekfakta",
+                "rating": "Klaim Medis Sesat / Berbahaya"
+            }
+        ],
+        "article_hash": "678901abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234",
+        "ipfs_cid": "bafkreig7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+        "tx_hash": "0x345abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456789012"
+    },
+    # 18. Teknologi / Gadget - Minyak Kayu Putih Layar HP
+    {
+        "title": "Trik Mengoleskan Minyak Kayu Putih ke Layar HP Retak Dapat Menghilangkan Goresan Kaca",
+        "category": "Teknologi",
+        "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop",
+        "source_url": "https://turnbackhoax.id/2023/07/salah-minyak-kayu-putih-hilangkan-retak-layar-hp",
+        "views_count": 5120,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Video life hack viral di TikTok memperlihatkan layar kaca ponsel pintar yang retak seribu diolesi minyak kayu putih lalu dilap hingga mulus kembali seperti baru.",
+        "penjelasan": "Pakar reparasi gawai dan elektronika menegaskan kaca layar yang retak secara fisik telah mengalami fraktur struktur kristal kaca yang tidak dapat disatukan oleh zat cair apa pun. Minyak kayu putih justru bersifat pelarut yang dapat merusak lapisan anti-minyak (oleophobic coating) layar.",
+        "kesimpulan": "Trik mengoleskan minyak kayu putih untuk menyatukan kaca HP retak adalah HOAKS pembodohan konten.",
+        "key_findings": [
+            "Kaca smartphone yang retak hanya dapat diperbaiki dengan penggantian modul layar kaca fisik baru.",
+            "Zat kimia minyak atsiri kayu putih dapat merembes ke panel backlight LCD dan menimbulkan noda permanen.",
+            "Video viral menggunakan teknik suntingan penggantian unit ponsel sebelum dan sesudah olesan."
+        ],
+        "claims_review": [
+            {
+                "claim": "Minyak kayu putih dapat menghilangkan retakan fisik pada kaca layar HP",
+                "claimant": "Video Tips TikTok Viral",
+                "reviewPublisher": "TurnBackHoax / MAFINDO",
+                "reviewUrl": "https://turnbackhoax.id",
+                "rating": "Klaim Palsu / Tipuan Konten"
+            }
+        ],
+        "article_hash": "789012abcdef0123456789abcdef0123456789abcdef0123456789abcdef012345",
+        "ipfs_cid": "bafkreih8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3",
+        "tx_hash": "0x456abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890123"
+    },
+    # 19. Finansial / Phishing - Akun CS DANA Palsu
+    {
+        "title": "Beredar Kontak WhatsApp CS DANA Palsu Meminta PIN untuk Membuka Akun Terbekukan",
+        "category": "Finansial",
+        "image_url": "https://images.unsplash.com/photo-1556742049-0a67e557224f?w=600&auto=format&fit=crop",
+        "source_url": "https://turnbackhoax.id/2023/08/penipuan-customer-care-dana-minta-pin",
+        "views_count": 6240,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Akun tidak dikenal di media sosial menghubungi pengguna dompet digital DANA yang mengeluh akunnya sedang diproteksi, menawarkan bantuan pemulihan akun cepat dengan syarat memberikan 6 digit PIN dan kode OTP.",
+        "penjelasan": "PT Espay Debit Indonesia Koe (DANA) secara berkala mengimbau nasabah bahwa CS resmi DANA tidak pernah menghubungi nasabah lewat nomor telepon seluler pribadi atau WhatsApp. DANA menegaskan petugas resmi tidak akan pernah meminta PIN keamanan, kode OTP, atau informasi kartu bank.",
+        "kesimpulan": "Kontak WhatsApp customer care DANA yang meminta PIN adalah HOAKS phishing pembobolan saldo dompet digital.",
+        "key_findings": [
+            "Customer care resmi DANA hanya beroperasi melalui pusat bantuan aplikasi DIANA atau Call Center 1500445.",
+            "PIN dan OTP adalah kunci otentikasi rahasia milik pengguna yang haram dibagikan kepada pihak lain.",
+            "Memberikan nomor PIN kepada oknum penipu menyebabkan pengambilalihan akun secara penuh."
+        ],
+        "claims_review": [
+            {
+                "claim": "Customer service resmi DANA meminta nomor PIN untuk buka blokir akun",
+                "claimant": "Akun WhatsApp CS Gadungan",
+                "reviewPublisher": "TurnBackHoax / MAFINDO",
+                "reviewUrl": "https://turnbackhoax.id",
+                "rating": "Penipuan Phishing / Rekayasa Sosial"
+            }
+        ],
+        "article_hash": "890123abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456",
+        "ipfs_cid": "bafkreii9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4",
+        "tx_hash": "0x567abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678901234"
+    },
+    # 20. Sosial / Undian Scam - Hadiah Motor Honda
+    {
+        "title": "Klaim Pembagian Ratusan Sepeda Motor Honda Gratis dalam Rangka HUT ke-50 Astra",
+        "category": "Sosial",
+        "image_url": "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600&auto=format&fit=crop",
+        "source_url": "https://www.kompas.com/cekfakta/read/2023/09/20/undian-motor-honda-gratis-palsu",
+        "views_count": 4730,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Beredar tautan kuesioner daring di grup WhatsApp berkedok perayaan ulang tahun ke-50 Astra Honda Motor dengan imbalan hadiah langsung 500 unit motor matic bagi yang meneruskan tautan ke 20 kontak.",
+        "penjelasan": "PT Astra Honda Motor (AHM) memastikan program pembagian motor gratis lewat tautan kuesioner internet tersebut adalah HOAKS penipuan. AHM selalu mempublikasikan informasi undian atau program apresiasi konsumen secara transparan di situs resmi astra-honda.com dan akun media sosial resmi bercentang biru.",
+        "kesimpulan": "Tautan pembagian ratusan motor Honda gratis via pesan berantai adalah HOAKS berkedok scam survei fiktif.",
+        "key_findings": [
+            "AHM menegaskan tidak ada program pembagian unit motor melalui tautan pesan instan.",
+            "Tautan memanfaatkan skema viralitas berantai untuk menyedot kuota dan data pribadi korban.",
+            "Warga diingatkan untuk tidak membuka tautan mencurigakan di luar domain resmi korporasi."
+        ],
+        "claims_review": [
+            {
+                "claim": "Astra Honda bagikan 500 motor matic gratis hanya dengan mengisi kuesioner",
+                "claimant": "Pesan Berantai WhatsApp",
+                "reviewPublisher": "Kompas Cek Fakta",
+                "reviewUrl": "https://www.kompas.com/cekfakta",
+                "rating": "Penipuan Undian / Scam"
+            }
+        ],
+        "article_hash": "901234abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
+        "ipfs_cid": "bafkreij0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5",
+        "tx_hash": "0x678abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456789012345"
+    },
+    # 21. Politik / Hukum - Putusan MA Ijazah Pejabat
+    {
+        "title": "Kabar Hoaks Salinan Putusan MA Membatalkan Seluruh Ijazah Perguruan Tinggi Pejabat Publik",
+        "category": "Politik",
+        "image_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop",
+        "source_url": "https://turnbackhoax.id/2024/05/hoaks-putusan-ma-ijazah-pejabat",
+        "views_count": 5880,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Beredar dokumen digital salinan putusan kasasi Mahkamah Agung (MA) yang dinarasikan membatalkan legalitas ijazah kelulusan sejumlah menteri dan pejabat negara karena cacat prosedur administrasi kampus.",
+        "penjelasan": "Juru Bicara Mahkamah Agung menegaskan bahwa dokumen putusan kasasi yang disebarluaskan di media sosial tersebut adalah dokumen palsu hasil fabrikasi. Sistem Informasi Penelusuran Perkara (SIPP) MA tidak mencatat adanya nomor register perkara sebagaimana tertera pada berkas tersebut.",
+        "kesimpulan": "Kabar putusan MA membatalkan ijazah perguruan tinggi pejabat negara adalah HOAKS fabrikasi dokumen hukum.",
+        "key_findings": [
+            "Mahkamah Agung mengonfirmasi nomor perkara dan amar putusan dalam dokumen beredar adalah fiktif.",
+            "Format cap stempel kepaniteraan dan nomor seri berkas tidak sesuai standar baku administrasi perkara MA.",
+            "Masyarakat dapat memverifikasi salinan resmi putusan pengadilan hanya melalui direktori putusan.mahkamahagung.go.id."
+        ],
+        "claims_review": [
+            {
+                "claim": "Mahkamah Agung keluarkan putusan kasasi pembatalan ijazah pejabat",
+                "claimant": "File Dokumen PDF di X (Twitter)",
+                "reviewPublisher": "TurnBackHoax / MAFINDO",
+                "reviewUrl": "https://turnbackhoax.id",
+                "rating": "Dokumen Palsu / Fabrikasi"
+            }
+        ],
+        "article_hash": "012345abcdef0123456789abcdef0123456789abcdef0123456789abcdef012345678",
+        "ipfs_cid": "bafkreik1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6",
+        "tx_hash": "0x789abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890123456"
+    },
+    # 22. Kesehatan / Mitos - Bawang Merah Serap Virus
+    {
+        "title": "Klaim Menaruh Irisan Bawang Merah di Sudut Kamar Dapat Menyedot Virus Flu dan Racun Udara",
+        "category": "Kesehatan",
+        "image_url": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&auto=format&fit=crop",
+        "source_url": "https://www.kompas.com/cekfakta/read/2023/04/14/bawang-merah-serap-virus-kamar-hoaks",
+        "views_count": 4610,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Beredar pesan di grup keluarga WhatsApp yang menyarankan menaruh irisan bawang merah di sudut kamar tidur karena dipercaya dapat menyerap bakteri, virus influenza, dan racun udara secara otomatis.",
+        "penjelasan": "Dokter spesialis paru dan ahli mikrobiologi klinis menegaskan bahwa bawang merah bukanlah spons atau filter biologis yang dapat menyedot mikroorganisme dari udara bebas. Virus influenza menyebar melalui droplet di udara, bukan tertarik ke irisan tanaman.",
+        "kesimpulan": "Klaim irisan bawang merah menyedot virus penyakit di ruangan adalah HOAKS mitos medis tak berdasar ilmiah.",
+        "key_findings": [
+            "Tidak ada mekanisme ilmiah biologis yang membuat bawang merah mampu menyerap virus dari atmosfer kamar.",
+            "Pencegahan penularan virus flu dilakukan dengan ventilasi udara yang baik, mencuci tangan, dan memakai masker.",
+            "Irisan bawang yang berubah warna hitam disebabkan oleh reaksi oksidasi alami jaringan sel tanaman dengan oksigen."
+        ],
+        "claims_review": [
+            {
+                "claim": "Bawang merah di sudut ruangan menyedot virus flu dan racun udara",
+                "claimant": "Pesan Berantai WhatsApp",
+                "reviewPublisher": "Kompas Cek Fakta",
+                "reviewUrl": "https://www.kompas.com/cekfakta",
+                "rating": "Mitos Tradisional Keliru"
+            }
+        ],
+        "article_hash": "123456abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+        "ipfs_cid": "bafkreil2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7",
+        "tx_hash": "0x890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678901234567"
+    },
+    # 23. Teknologi / Gelombang Mikro - Radiasi 5G Burung Terbakar
+    {
+        "title": "Kabar Bahaya Radiasi Sinyal Menara 5G Membakar Kawanan Burung yang Melintas di Udara",
+        "category": "Teknologi",
+        "image_url": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&auto=format&fit=crop",
+        "source_url": "https://turnbackhoax.id/2023/05/salah-radiasi-5g-bakar-burung",
+        "views_count": 3990,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Sebuah rekaman video memperlihatkan puluhan burung mati berjatuhan dari langit secara serentak dengan narasi klaim burung-burung tersebut tersengat dan terbakar oleh radiasi pemancar jaringan 5G.",
+        "penjelasan": "Kementerian Komdigi, WHO, dan IEEE menegaskan frekuensi radio yang digunakan oleh pemancar jaringan seluler 5G adalah radiasi non-ionisasi dengan daya rendah yang tidak memiliki energi termal untuk membakar makhluk hidup. Video burung berjatuhan tersebut merupakan peristiwa lama akibat kebocoran gas beracun cerobong pabrik di luar negeri.",
+        "kesimpulan": "Kabar radiasi jaringan 5G membakar burung di udara adalah HOAKS teori konspirasi teknologi.",
+        "key_findings": [
+            "Gelombang radio 5G berada di spektrum non-ionisasi yang aman sesuai batasan keselamatan ICNIRP.",
+            "Kematian massal burung pada video aslinya terbukti disebabkan oleh keracunan zat kimia industri, bukan sinyal HP.",
+            "Penelitian ilmiah internasional membuktikan sinyal telekomunikasi tidak membakar organ tubuh hewan liar."
+        ],
+        "claims_review": [
+            {
+                "claim": "Sinyal antena 5G membakar kawanan burung yang terbang di atas tower",
+                "claimant": "Unggahan Video Facebook",
+                "reviewPublisher": "TurnBackHoax / MAFINDO",
+                "reviewUrl": "https://turnbackhoax.id",
+                "rating": "Klaim Konspirasi / Sesat"
+            }
+        ],
+        "article_hash": "234567abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567890",
+        "ipfs_cid": "bafkreim3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8",
+        "tx_hash": "0x901abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456789012345678"
+    },
+    # 24. Finansial / Pinjol - Pemutihan SLIK OJK
+    {
+        "title": "Klaim Pemutihan Total Riwayat Catatan Kredit Macet SLIK OJK Mulai 1 Januari 2026",
+        "category": "Finansial",
+        "image_url": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop",
+        "source_url": "https://turnbackhoax.id/2024/01/pemutihan-slik-ojk-palsu",
+        "views_count": 6890,
+        "credibility_score": 0,
+        "status": "HOAX",
+        "narasi": "Beredar iklan penawaran jasa joki pinjol di media sosial yang mengklaim pemerintah bersama Otoritas Jasa Keuangan (OJK) menghapus total seluruh data riwayat kredit macet dan skor kolektibilitas buruk debitur per awal tahun.",
+        "penjelasan": "Otoritas Jasa Keuangan (OJK) secara resmi menegaskan tidak pernah menerbitkan kebijakan penghapusan atau pemutihan data debitur macet di Sistem Layanan Informasi Keuangan (SLIK). Status kolektibilitas hanya dapat diperbarui secara otomatis oleh bank/lembaga pembiayaan setelah debitur menyelesaikan pelunasan kewajibannya.",
+        "kesimpulan": "Klaim pemutihan catatan kredit macet SLIK OJK adalah HOAKS modus penipuan jasa penghapusan data fiktif.",
+        "key_findings": [
+            "OJK menyatakan tidak ada program pemutihan data riwayat kredit macet nasional.",
+            "Iklan joki pemutihan SLIK merupakan modus penipuan pemerasan uang muka korban.",
+            "Debitur dapat memeriksa keaslian riwayat kredit secara mandiri melalui idebku.ojk.go.id."
+        ],
+        "claims_review": [
+            {
+                "claim": "OJK hapus semua riwayat kredit macet dan blacklist perbankan",
+                "claimant": "Iklan Jasa Joki Pinjol di TikTok",
+                "reviewPublisher": "TurnBackHoax / MAFINDO",
+                "reviewUrl": "https://turnbackhoax.id",
+                "rating": "Penipuan / Hoaks Keuangan"
+            }
+        ],
+        "article_hash": "345678abcdef0123456789abcdef0123456789abcdef0123456789abcdef012345678901",
+        "ipfs_cid": "bafkrein4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9",
+        "tx_hash": "0x012abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890123456789"
     }
 ]
 
@@ -497,7 +737,7 @@ def seed():
         print("[Error] Supabase client failed to initialize.")
         return
 
-    print("Cleaning up old placeholder records in hoax_articles...")
+    print("Cleaning up old records in hoax_articles...")
     try:
         client.table("hoax_articles").delete().neq("title", "").execute()
         print("Cleaned existing hoax_articles table.")
@@ -512,7 +752,7 @@ def seed():
         except Exception as e:
             print(f"[{idx}] Failed to insert: {e}")
 
-    print("\n[SUCCESS] Seeding completed! Total rows in Supabase: 16 articles.")
+    print("\n[SUCCESS] Seeding completed! Total rows in Supabase: 24 articles.")
 
 if __name__ == "__main__":
     seed()

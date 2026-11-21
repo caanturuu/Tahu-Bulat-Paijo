@@ -430,41 +430,44 @@ export default function Home() {
                     <Link
                       key={item.id}
                       href={`/berita-hoax/${item.id}`}
-                      className="group flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                      className="group relative flex flex-col justify-end overflow-hidden rounded-lg border border-slate-200 bg-slate-900 shadow-2xs hover:border-[#185adb] hover:shadow-md transition-all duration-300 aspect-[3/4] min-h-[340px]"
                     >
-                      <div>
-                        {/* Thumbnail Image */}
-                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.title}
-                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
-                          )}
+                      {/* Full Bleed Image (Memenuhi Card) */}
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                          <FileSearch className="h-10 w-10 text-slate-400" strokeWidth={1.5} />
                         </div>
+                      )}
 
-                        {/* Title & Tag */}
-                        <div className="mt-3.5 space-y-1.5">
-                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 rounded px-2 py-0.5 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400 font-bold">
+                      {/* Gradiasi Warna Putih untuk bagian tulisan */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 via-50% to-transparent dark:from-zinc-950 dark:via-zinc-950/90 dark:via-50% dark:to-transparent" />
+
+                      {/* Content Layer over white gradient */}
+                      <div className="relative z-10 p-4 space-y-2">
+                        <div>
+                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50/95 border border-rose-200 rounded px-2 py-0.5 font-bold shadow-2xs">
                             {item.category || "HOAKS"}
                           </span>
-                          <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
+                          <h3 className="mt-2 font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
                             {item.title}
                           </h3>
                         </div>
-                      </div>
 
-                      {/* Footer Info */}
-                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                        <span className="text-slate-500 dark:text-zinc-400 font-medium">
-                          {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
-                        </span>
-                        <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
-                          Cek Berita →
-                        </span>
+                        {/* Footer Info */}
+                        <div className="flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-[11px] dark:border-zinc-800/80">
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">
+                            {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
+                          </span>
+                          <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
+                            Cek Berita →
+                          </span>
+                        </div>
                       </div>
                     </Link>
                   ))
@@ -472,34 +475,37 @@ export default function Home() {
                 filteredHoaxPlaceholders.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                    className="group relative flex flex-col justify-end overflow-hidden rounded-lg border border-dashed border-slate-200 bg-slate-100 shadow-2xs hover:border-blue-300 transition-all duration-300 aspect-[3/4] min-h-[340px]"
                   >
-                    <div>
-                      {/* Thumbnail Image Placeholder */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
-                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
-                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
-                      </div>
+                    {/* Placeholder Background */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-4">
+                      <FileSearch className="h-10 w-10 mb-2 opacity-60 text-slate-400" strokeWidth={1.5} />
+                      <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                    </div>
 
-                      {/* Title & Tag Placeholder */}
-                      <div className="mt-3.5 space-y-1.5">
-                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                    {/* Gradiasi Warna Putih untuk bagian tulisan */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 via-50% to-transparent dark:from-zinc-950 dark:via-zinc-950/90 dark:via-50% dark:to-transparent" />
+
+                    {/* Content Layer over white gradient */}
+                    <div className="relative z-10 p-4 space-y-2">
+                      <div>
+                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-500 dark:text-zinc-400 border border-slate-200/90 rounded px-1.5 py-0.5 bg-white/80 dark:bg-zinc-800/80">
                           {item.tag}
                         </span>
-                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                        <h3 className="mt-2 font-bold text-xs sm:text-sm text-slate-600 dark:text-zinc-300 line-clamp-2 leading-snug">
                           {item.title}
                         </h3>
                       </div>
-                    </div>
 
-                    {/* Footer Info Placeholder */}
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                      <span className="text-slate-400 dark:text-zinc-500 font-medium">
-                        {item.date}
-                      </span>
-                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
-                        Menunggu Data →
-                      </span>
+                      {/* Footer Info Placeholder */}
+                      <div className="flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-[11px] dark:border-zinc-800/80">
+                        <span className="text-slate-400 dark:text-zinc-500 font-medium">
+                          {item.date}
+                        </span>
+                        <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
+                          Menunggu Data →
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))

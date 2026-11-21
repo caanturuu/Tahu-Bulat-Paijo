@@ -30,13 +30,16 @@ def save_audit_history(record: Dict[str, Any]) -> bool:
         print(f"[Supabase] save_audit_history error: {e}")
         return False
 
-def get_audit_history(limit: int = 20) -> List[Dict[str, Any]]:
-    """Retrieve recent verification history records."""
+def get_audit_history(limit: int = 50, user_address: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieve recent verification history records for a specific user."""
     client = get_supabase_client()
     if not client:
         return []
     try:
-        res = client.table("user_audit_history").select("*").order("created_at", desc=True).limit(limit).execute()
+        query = client.table("user_audit_history").select("*")
+        if user_address and user_address.strip():
+            query = query.eq("user_address", user_address.strip())
+        res = query.order("created_at", desc=True).limit(limit).execute()
         return res.data or []
     except Exception as e:
         print(f"[Supabase] get_audit_history error: {e}")

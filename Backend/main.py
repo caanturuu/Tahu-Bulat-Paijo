@@ -372,9 +372,11 @@ async def relay_status():
     return await get_relayer_status()
 
 @app.get("/api/history")
-def read_audit_history(limit: int = 20):
-    """Retrieve audit history from Supabase table user_audit_history."""
-    return get_audit_history(limit=limit)
+def read_audit_history(limit: int = 50, user_address: Optional[str] = None):
+    """Retrieve audit history from Supabase table user_audit_history for authenticated user."""
+    if not user_address or not user_address.strip():
+        return []
+    return get_audit_history(limit=limit, user_address=user_address.strip())
 
 @app.get("/api/hoax-articles")
 def read_hoax_articles(limit: int = 50, category: Optional[str] = None):

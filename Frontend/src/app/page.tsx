@@ -147,36 +147,6 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
   },
 };
 
-// Placeholder Audit History records (Dummy transactions removed)
-const AUDIT_HISTORY_PLACEHOLDERS = [
-  {
-    id: "tx-slot-001",
-    title: "[Slot Riwayat Audit On-Chain #1]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-  {
-    id: "tx-slot-002",
-    title: "[Slot Riwayat Audit On-Chain #2]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-  {
-    id: "tx-slot-003",
-    title: "[Slot Riwayat Audit On-Chain #3]",
-    score: "--/100",
-    status: "MENUNGGU",
-    hash: "0x0000...0000",
-    date: "--",
-    tx: "Menunggu blok",
-  },
-];
 
 export default function Home() {
   const { authenticated, user } = usePrivy();
@@ -196,6 +166,7 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState("");
 
   const isUserAuthenticated = authenticated || isLoggedIn;
+  const currentUserAddress = user?.wallet?.address || (userEmail ? userEmail : "");
 
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
@@ -205,9 +176,13 @@ export default function Home() {
   const [liveHistory, setLiveHistory] = useState<any[]>([]);
   const [liveHoaxArticles, setLiveHoaxArticles] = useState<any[]>([]);
 
-  // Function to refresh audit history
+  // Function to refresh audit history for authenticated user
   const fetchLiveHistory = () => {
-    fetch("http://localhost:8000/api/history")
+    if (!isUserAuthenticated || !currentUserAddress) {
+      setLiveHistory([]);
+      return;
+    }
+    fetch(`http://localhost:8000/api/history?user_address=${encodeURIComponent(currentUserAddress)}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setLiveHistory(data);
@@ -230,8 +205,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchLiveHistory();
-  }, []);
+    if (isUserAuthenticated && currentUserAddress) {
+      fetchLiveHistory();
+    } else {
+      setLiveHistory([]);
+    }
+  }, [isUserAuthenticated, currentUserAddress]);
 
   useEffect(() => {
     fetchLiveHoaxArticles(selectedHoaxCategory);
@@ -798,7 +777,7 @@ export default function Home() {
                 Riwayat Audit On-Chain (Ethereum Sepolia)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
-                Catatan bukti verifikasi berita yang tersimpan abadi di ledger blockchain.
+                Catatan bukti verifikasi berita yang tersimpan abadi di ledger blockchain untuk akun Anda.
               </p>
             </div>
             <a
@@ -811,38 +790,64 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/90">
-            {/* Informative top banner */}
-            <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                  {liveHistory.length > 0 ? "Tersambung ke Supabase" : "Tampilan Placeholder"}
-                </span>
-                <span>•</span>
-                <span>
-                  {liveHistory.length > 0
-                    ? `Menampilkan ${liveHistory.length} riwayat audit terverifikasi.`
-                    : "Belum ada transaksi audit tersimpan. Riwayat akan otomatis terisi saat proses verifikasi berita dijalankan."}
-                </span>
+          {!isUserAuthenticated ? (
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-8 sm:p-12 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900/90">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+                <Lock className="h-7 w-7" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Riwayat Pemeriksaan Terkunci
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+                Riwayat pemeriksaan berita bersifat pribadi dan hanya dapat diakses oleh Anda. Silakan masuk terlebih dahulu untuk melihat catatan verifikasi akun Anda.
+              </p>
+              <div className="mt-6 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsLoginOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#185adb] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#154db8] transition-colors cursor-pointer"
+                >
+                  Masuk untuk Melihat Riwayat
+                </button>
               </div>
             </div>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900/90">
+              {/* Informative top banner */}
+              <div className="border-b border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 text-xs text-slate-500 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                    Akun: {shortenHash(currentUserAddress, 8)}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {liveHistory.length > 0
+                      ? `Menampilkan ${liveHistory.length} riwayat audit terverifikasi Anda.`
+                      : "Belum ada riwayat audit tersimpan untuk akun Anda."}
+                  </span>
+                </div>
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-                  <tr>
-                    <th className="p-3.5 sm:p-4">Judul Artikel</th>
-                    <th className="p-3.5 sm:p-4">Skor AI</th>
-                    <th className="p-3.5 sm:p-4">Status</th>
-                    <th className="p-3.5 sm:p-4 hidden sm:table-cell">Article Hash</th>
-                    <th className="p-3.5 sm:p-4">Waktu Audit</th>
-                    <th className="p-3.5 sm:p-4">Transaksi / Penyimpanan</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
-                  {liveHistory.length > 0
-                    ? liveHistory.map((row) => {
+              {liveHistory.length === 0 ? (
+                <div className="p-8 sm:p-12 text-center text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+                  Belum ada catatan verifikasi berita untuk akun ini. Periksa berita di halaman utama untuk mencatat riwayat pertama Anda.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="border-b border-slate-200 bg-slate-50/90 font-semibold text-slate-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+                      <tr>
+                        <th className="p-3.5 sm:p-4">Judul Artikel</th>
+                        <th className="p-3.5 sm:p-4">Skor AI</th>
+                        <th className="p-3.5 sm:p-4">Status</th>
+                        <th className="p-3.5 sm:p-4 hidden sm:table-cell">Article Hash</th>
+                        <th className="p-3.5 sm:p-4">Waktu Audit</th>
+                        <th className="p-3.5 sm:p-4">Transaksi / Penyimpanan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700 dark:divide-zinc-800 dark:text-zinc-300">
+                      {liveHistory.map((row) => {
                         const isHoaxStatus = row.status === "HOAX";
                         const isValidStatus = row.status === "VALID";
                         const isQuestionableStatus = row.status === "QUESTIONABLE";
@@ -905,35 +910,13 @@ export default function Home() {
                             </td>
                           </tr>
                         );
-                      })
-                    : AUDIT_HISTORY_PLACEHOLDERS.map((row) => (
-                        <tr key={row.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
-                          <td className="p-3.5 sm:p-4 font-medium text-slate-400 dark:text-zinc-500 max-w-xs truncate">
-                            {row.title}
-                          </td>
-                          <td className="p-3.5 sm:p-4 font-bold font-mono text-slate-400 dark:text-zinc-500">
-                            {row.score}
-                          </td>
-                          <td className="p-3.5 sm:p-4">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="p-3.5 sm:p-4 font-mono text-[11px] text-slate-400 dark:text-zinc-500 hidden sm:table-cell">
-                            {row.hash}
-                          </td>
-                          <td className="p-3.5 sm:p-4 text-[11px] text-slate-400 dark:text-zinc-500 whitespace-nowrap">
-                            {row.date}
-                          </td>
-                          <td className="p-3.5 sm:p-4 font-mono text-xs text-slate-400 dark:text-zinc-500">
-                            {row.tx}
-                          </td>
-                        </tr>
-                      ))}
-                </tbody>
-              </table>
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </section>
       )}
 

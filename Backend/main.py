@@ -1,6 +1,6 @@
 import datetime
 from typing import Optional, List
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from schemas import (
@@ -9,6 +9,8 @@ from schemas import (
     RescanRequest,
     RescanResponse,
     DiffSummary,
+    RelayRequest,
+    RelayResponse,
 )
 from services.scraper import extract_article_content, calculate_hash
 from services.fact_check import search_fact_checks
@@ -21,6 +23,8 @@ from services.db_service import (
     get_hoax_articles,
     get_hoax_article_by_id,
 )
+from services.privy_auth import verify_privy_user_wallet
+from services.relayer import ticket_store, relay_verification, get_relayer_status
 
 app = FastAPI(
     title="VeritasChain API",
@@ -188,6 +192,21 @@ async def verify_article(req: VerificationRequest):
     }
     ipfs_cid = await pin_json_to_ipfs(ipfs_payload, name=f"VeritasChain-{article_hash[:12]}")
 
+    # Issue short-lived ticket so /api/relay only sponsors results produced by /api/verify.
+    verify_ticket = ticket_store.issue(
+        article_hash=article_hash,
+        ipfs_cid=ipfs_cid,
+        credibility_score=ai_result["credibilityScore"],
+        metadata={
+            "url": url or req.query,
+            "title": title,
+            "status": ai_result["status"],
+            "summary": ai_result["summary"],
+            "keyFindings": ai_result["keyFindings"],
+            "claimsReview": fact_check_claims,
+        },
+    )
+
     # Auto-save verified news into user_audit_history
     save_audit_history({
         "user_address": req.userAddress or "0x0000000000000000000000000000000000000000",
@@ -225,7 +244,20 @@ async def verify_article(req: VerificationRequest):
         network="Ethereum Sepolia",
         timestamp=now_iso,
         hasRevisions=False,
+        verifyTicket=verify_ticket,
     )
+
+@app.post("/api/relay", response_model=RelayResponse)
+async def relay_article_verification(
+    req: RelayRequest,
+    authorization: Optional[str] = Header(default=None),
+):
+    user_did = await verify_privy_user_wallet(authorization, req.userAddress)
+    return await relay_verification(req, user_did)
+
+@app.get("/api/relay/status")
+async def relay_status():
+    return await get_relayer_status()
 
 @app.get("/api/history")
 def read_audit_history(limit: int = 20):
@@ -280,3 +312,4 @@ async def rescan_article(req: RescanRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

@@ -12,11 +12,9 @@ import {
   Zap,
   Lock,
   GitCompare,
-  ArrowRight,
   Sparkles,
   Database,
   Search,
-  Check,
 } from "lucide-react";
 
 interface FeatureDetailModalProps {

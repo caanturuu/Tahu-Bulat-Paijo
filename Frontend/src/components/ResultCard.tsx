@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { ExternalLink, Database, ShieldCheck } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { VerificationResult } from "@/types";
-import { formatDate, getScoreStatusText } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { ProofBadge } from "./ProofBadge";
 import { DiffViewer } from "./DiffViewer";
 
@@ -16,7 +16,7 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
   // If loading, render single-card animated skeleton
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-200">
+      <div className="rounded-lg border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-200">
         <div className="space-y-3 pb-5 border-b border-slate-100">
           <div className="inline-flex items-center gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-1 text-xs font-bold text-[#185adb] uppercase tracking-wide">
             <span className="h-2 w-2 rounded-full bg-blue-600 animate-ping" />
@@ -57,7 +57,7 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
   // If data is empty / null, render the clean Card Kosong (Empty State) in one single card
   if (!data) {
     return (
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-300 text-slate-800">
+      <div className="rounded-lg border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-300 text-slate-800">
         {/* Header Placeholder */}
         <div className="space-y-2.5 pb-5 border-b border-slate-100">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,7 +126,7 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
   // Non-news dedicated classification layout
   if (data.isNews === false) {
     return (
-      <div className="rounded-2xl border border-amber-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-6 animate-in fade-in duration-300 text-slate-800">
+      <div className="rounded-lg border border-amber-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-6 animate-in fade-in duration-300 text-slate-800">
         <div className="space-y-2 pb-5 border-b border-amber-100">
           <div className="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800 uppercase tracking-wider">
             HASIL VALIDASI KONTEN
@@ -156,10 +156,8 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
   }
 
   // Populated verification state (Unified Single Card matching reference)
-  const scoreInfo = getScoreStatusText(data.credibilityScore);
   const isHoax = data.credibilityScore < 50;
   const isQuestionable = data.credibilityScore >= 50 && data.credibilityScore < 80;
-  const isValid = data.credibilityScore >= 80;
 
   const verdictRating = isHoax
     ? "Salah"
@@ -190,7 +188,7 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
         ];
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-300 text-slate-800">
+    <div className="rounded-lg border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm space-y-7 animate-in fade-in duration-300 text-slate-800">
       {/* 0. Top Section: Headline & Status Header */}
       <div className="space-y-3 pb-5 border-b border-slate-100">
         <div className="flex flex-wrap items-center justify-between gap-3">

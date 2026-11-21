@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePrivy, useWallets, useCreateWallet } from "@privy-io/react-auth";
@@ -8,18 +8,14 @@ import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
-import { VerificationResult } from "@/types";
+import { VerificationResult, HoaxArticleItem, AuditHistoryItem } from "@/types";
 import { formatDate, shortenHash, resolveWalletAddress } from "@/lib/utils";
 import {
   Search,
   Plus,
   ArrowRight,
   Loader2,
-  ShieldCheck,
-  TrendingUp,
   ExternalLink,
-  CheckCircle2,
-  AlertTriangle,
   History,
   FileSearch,
   Cpu,
@@ -27,13 +23,8 @@ import {
   Database,
   Users,
   Sparkles,
-  Check,
   X,
-  Globe,
-  Zap,
-  GitCompare,
   Lock,
-  ChevronRight,
 } from "lucide-react";
 
 // 10 Curated News Context Backgrounds from User Upload
@@ -190,48 +181,43 @@ export default function Home() {
   const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
 
   // Live database states from Supabase via FastAPI backend
-  const [liveHistory, setLiveHistory] = useState<any[]>([]);
-  const [liveHoaxArticles, setLiveHoaxArticles] = useState<any[]>([]);
+  const [liveHistory, setLiveHistory] = useState<AuditHistoryItem[]>([]);
+  const [liveHoaxArticles, setLiveHoaxArticles] = useState<HoaxArticleItem[]>([]);
 
   // Function to refresh audit history for authenticated user
-  const fetchLiveHistory = () => {
-    if (!isUserAuthenticated || !currentUserAddress) {
-      setLiveHistory([]);
-      return;
-    }
+  const fetchLiveHistory = useCallback(() => {
+    if (!currentUserAddress) return;
     fetch(`http://localhost:8000/api/history?user_address=${encodeURIComponent(currentUserAddress)}`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
+      .then((data: AuditHistoryItem[]) => {
         if (Array.isArray(data)) setLiveHistory(data);
       })
       .catch(() => { });
-  };
+  }, [currentUserAddress]);
 
   // Function to fetch hoax articles catalog
-  const fetchLiveHoaxArticles = (cat?: string, search?: string) => {
+  const fetchLiveHoaxArticles = useCallback((cat?: string, search?: string) => {
     const params = new URLSearchParams();
     if (cat && cat !== "Semua") params.append("category", cat);
     if (search && search.trim()) params.append("q", search.trim());
     const qs = params.toString() ? `?${params.toString()}` : "";
     fetch(`http://localhost:8000/api/hoax-articles${qs}`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
+      .then((data: HoaxArticleItem[]) => {
         if (Array.isArray(data)) setLiveHoaxArticles(data);
       })
       .catch(() => { });
-  };
+  }, []);
 
   useEffect(() => {
     if (isUserAuthenticated && currentUserAddress) {
       fetchLiveHistory();
-    } else {
-      setLiveHistory([]);
     }
-  }, [isUserAuthenticated, currentUserAddress]);
+  }, [isUserAuthenticated, currentUserAddress, fetchLiveHistory]);
 
   useEffect(() => {
     fetchLiveHoaxArticles(selectedHoaxCategory);
-  }, [selectedHoaxCategory]);
+  }, [selectedHoaxCategory, fetchLiveHoaxArticles]);
 
   // Hidden file input for plus button
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -310,16 +296,6 @@ export default function Home() {
     if (file) {
       setQuery(`[Unggahan Tangkapan Layar: ${file.name}] Menganalisis teks dan klaim berita...`);
     }
-  };
-
-  const handleQuickTopic = (topic: string) => {
-    setQuery(topic);
-  };
-
-  const handleCheckHoax = (title: string) => {
-    setQuery(title);
-    setActiveTab("Cek Fakta");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Reusable Hoax News Section (matching uploaded reference)
@@ -466,7 +442,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {isUsingLive ? (
-                currentList.map((item) => (
+                filteredLiveArticles.map((item) => (
                   <Link
                     key={item.id}
                     href={`/berita-hoax/${item.id}`}
@@ -476,10 +452,13 @@ export default function Home() {
                       {/* Thumbnail Image */}
                       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
                         {item.image_url ? (
-                          <img
+                          <Image
                             src={item.image_url}
-                            alt={item.title}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            alt={item.title || "Gambar artikel hoaks"}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            unoptimized
                           />
                         ) : (
                           <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
@@ -500,7 +479,7 @@ export default function Home() {
                     {/* Footer Info */}
                     <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
                       <span className="text-slate-500 dark:text-zinc-400 font-medium">
-                        {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
+                        {item.published_date ? formatDate(item.published_date) : item.created_at ? formatDate(item.created_at) : ""}
                       </span>
                       <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
                         Cek Berita →
@@ -509,7 +488,7 @@ export default function Home() {
                   </Link>
                 ))
               ) : (
-                currentList.map((item) => (
+                filteredPlaceholders.map((item) => (
                   <div
                     key={item.id}
                     className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"

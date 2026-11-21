@@ -31,12 +31,8 @@ export function Navbar({
 }: NavbarProps) {
   const { authenticated, user, logout: privyLogout } = usePrivy();
   const { wallets } = useWallets();
-  const [currentTab, setCurrentTab] = useState(activeTab);
+  const currentTab = activeTab || "Cek Fakta";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setCurrentTab(activeTab);
-  }, [activeTab]);
 
   useEffect(() => {
     // Lock application theme permanently to light mode
@@ -53,7 +49,6 @@ export function Navbar({
   ];
 
   const handleNavClick = (label: string) => {
-    setCurrentTab(label);
     if (onTabChange) onTabChange(label);
     setMobileMenuOpen(false);
   };

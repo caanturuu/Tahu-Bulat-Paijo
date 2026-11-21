@@ -19,7 +19,6 @@ function HoaxDetailContent() {
   useEffect(() => {
     if (!id) return;
 
-    setIsLoading(true);
     fetch(`http://localhost:8000/api/hoax-articles/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Artikel hoaks tidak ditemukan.");

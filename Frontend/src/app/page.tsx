@@ -339,7 +339,7 @@ export default function Home() {
           {/* Search Bar & Category Filter */}
           <div className="space-y-3 max-w-3xl">
             <div className="flex flex-col sm:flex-row gap-2.5">
-              <div className="relative flex-1 flex items-center rounded-2xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-2xs transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="relative flex-1 flex items-center rounded-lg border border-slate-200 bg-white p-1.5 sm:p-2 shadow-2xs transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex h-9 w-9 items-center justify-center text-slate-400 dark:text-zinc-500 shrink-0">
                   <Search className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                 </div>
@@ -364,7 +364,7 @@ export default function Home() {
 
               <button
                 type="button"
-                className="flex items-center justify-center gap-1.5 rounded-2xl bg-[#185adb] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all shrink-0"
+                className="flex items-center justify-center gap-1.5 rounded-lg bg-[#185adb] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition-all shrink-0 cursor-pointer"
               >
                 <Search className="h-4 w-4" strokeWidth={2} />
                 <span>Cari</span>
@@ -394,179 +394,159 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Grid: 8 Cols Cards + 4 Cols Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: 15 Hoax Placeholder Cards */}
-          <div className="lg:col-span-8">
-            {filteredHoaxPlaceholders.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
-                <FileSearch className="mx-auto h-8 w-8 text-slate-300 dark:text-zinc-600 mb-2" strokeWidth={1.5} />
-                <p className="text-sm font-medium text-slate-600 dark:text-zinc-400">
-                  Tidak ada slot berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHoaxSearchQuery("");
-                    setSelectedHoaxCategory("Semua");
-                  }}
-                  className="mt-3 text-xs font-semibold text-[#185adb] hover:underline"
-                >
-                  Reset pencarian
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {liveHoaxArticles.length > 0 ? (
-                  liveHoaxArticles
-                    .filter((item) => {
-                      const q = hoaxSearchQuery.toLowerCase().trim();
-                      return (
-                        !q ||
-                        item.title?.toLowerCase().includes(q) ||
-                        item.category?.toLowerCase().includes(q) ||
-                        item.narasi?.toLowerCase().includes(q)
-                      );
-                    })
-                    .map((item) => (
-                      <Link
-                        key={item.id}
-                        href={`/berita-hoax/${item.id}`}
-                        className="group flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
-                      >
-                        <div>
-                          {/* Thumbnail Image */}
-                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                            {item.image_url ? (
-                              <img
-                                src={item.image_url}
-                                alt={item.title}
-                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
-                            )}
-                          </div>
-
-                          {/* Title & Tag */}
-                          <div className="mt-3.5 space-y-1.5">
-                            <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 rounded px-2 py-0.5 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400 font-bold">
-                              {item.category || "HOAKS"}
-                            </span>
-                            <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
-                              {item.title}
-                            </h3>
-                          </div>
-                        </div>
-
-                        {/* Footer Info */}
-                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                          <span className="text-slate-500 dark:text-zinc-400 font-medium">
-                            {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
-                          </span>
-                          <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
-                            Cek Berita →
-                          </span>
-                        </div>
-                      </Link>
-                    ))
-                ) : (
-                  filteredHoaxPlaceholders.map((item) => (
-                    <div
+        {/* Main Content: Hoax News Cards */}
+        <div className="w-full">
+          {filteredHoaxPlaceholders.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900/60">
+              <FileSearch className="mx-auto h-8 w-8 text-slate-300 dark:text-zinc-600 mb-2" strokeWidth={1.5} />
+              <p className="text-sm font-medium text-slate-600 dark:text-zinc-400">
+                Tidak ada slot berita hoaks yang cocok dengan pencarian &quot;{hoaxSearchQuery}&quot;
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setHoaxSearchQuery("");
+                  setSelectedHoaxCategory("Semua");
+                }}
+                className="mt-3 text-xs font-semibold text-[#185adb] hover:underline"
+              >
+                Reset pencarian
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {liveHoaxArticles.length > 0 ? (
+                liveHoaxArticles
+                  .filter((item) => {
+                    const q = hoaxSearchQuery.toLowerCase().trim();
+                    return (
+                      !q ||
+                      item.title?.toLowerCase().includes(q) ||
+                      item.category?.toLowerCase().includes(q) ||
+                      item.narasi?.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((item) => (
+                    <Link
                       key={item.id}
-                      className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                      href={`/berita-hoax/${item.id}`}
+                      className="group flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 shadow-2xs hover:border-[#185adb] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
                     >
                       <div>
-                        {/* Thumbnail Image Placeholder */}
-                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
-                          <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
-                          <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                        {/* Thumbnail Image */}
+                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.title}
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+                          )}
                         </div>
 
-                        {/* Title & Tag Placeholder */}
+                        {/* Title & Tag */}
                         <div className="mt-3.5 space-y-1.5">
-                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
-                            {item.tag}
+                          <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 rounded px-2 py-0.5 dark:bg-rose-950/40 dark:border-rose-900/40 dark:text-rose-400 font-bold">
+                            {item.category || "HOAKS"}
                           </span>
-                          <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                          <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#185adb] transition-colors">
                             {item.title}
                           </h3>
                         </div>
                       </div>
 
-                      {/* Footer Info Placeholder */}
+                      {/* Footer Info */}
                       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
-                        <span className="text-slate-400 dark:text-zinc-500 font-medium">
-                          {item.date}
+                        <span className="text-slate-500 dark:text-zinc-400 font-medium">
+                          {item.published_date ? formatDate(item.published_date) : formatDate(item.created_at)}
                         </span>
-                        <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
-                          Menunggu Data →
+                        <span className="font-bold text-[#185adb] dark:text-blue-400 flex items-center gap-0.5 group-hover:underline">
+                          Cek Berita →
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   ))
-                )}
-              </div>
-            )}
+              ) : (
+                filteredHoaxPlaceholders.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
+                  >
+                    <div>
+                      {/* Thumbnail Image Placeholder */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100/80 dark:bg-zinc-800/60 border border-dashed border-slate-200/80 dark:border-zinc-700/60 flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 p-3 text-center">
+                        <FileSearch className="h-7 w-7 mb-1 opacity-60 text-slate-400" strokeWidth={1.5} />
+                        <span className="text-[11px] font-medium tracking-tight">Slot Gambar Berita #{item.id}</span>
+                      </div>
 
-            {/* Pagination bar for 15 placeholder items */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-                Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {filteredHoaxPlaceholders.length}</strong> dari <strong>{HOAX_NEWS_PLACEHOLDERS.length}</strong> slot data kosong
-              </span>
-              <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
-                  disabled
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 opacity-60 cursor-not-allowed dark:border-zinc-800"
-                >
-                  ← Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg bg-[#185adb] px-3 py-1.5 font-bold text-white shadow-xs"
-                >
-                  1
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  2
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  3
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  Selanjutnya →
-                </button>
-              </div>
+                      {/* Title & Tag Placeholder */}
+                      <div className="mt-3.5 space-y-1.5">
+                        <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-slate-400 dark:text-zinc-500 border border-slate-200/80 rounded px-1.5 py-0.5 dark:border-zinc-800">
+                          {item.tag}
+                        </span>
+                        <h3 className="font-bold text-xs sm:text-sm text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Footer Info Placeholder */}
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] dark:border-zinc-800/80">
+                      <span className="text-slate-400 dark:text-zinc-500 font-medium">
+                        {item.date}
+                      </span>
+                      <span className="font-semibold text-slate-400 dark:text-zinc-500 flex items-center gap-0.5">
+                        Menunggu Data →
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          </div>
+          )}
 
-        {/* Right Column: Sidebar (Poster Kampanye Literasi) */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Kampanye Literasi Informasi Digital (Poster Resmi - Proporsional) */}
-          <div className="flex justify-center w-full pt-1">
-            <div className="relative overflow-hidden rounded-3xl w-full max-w-[270px] shadow-sm hover:shadow-md transition-all">
-              <Image
-                src="/hoax-news/anti-hoax-poster.jpg"
-                alt="Kampanye Literasi Informasi Digital - STOP HOAX! Saring Sebelum Sharing"
-                width={270}
-                height={400}
-                className="w-full h-auto object-contain rounded-3xl"
-                priority
-              />
+          {/* Pagination bar for placeholder items */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+              Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {filteredHoaxPlaceholders.length}</strong> dari <strong>{HOAX_NEWS_PLACEHOLDERS.length}</strong> slot data kosong
+            </span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <button
+                type="button"
+                disabled
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 opacity-60 cursor-not-allowed dark:border-zinc-800"
+              >
+                ← Sebelumnya
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-[#185adb] px-3 py-1.5 font-bold text-white shadow-xs"
+              >
+                1
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+              >
+                2
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+              >
+                3
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+              >
+                Selanjutnya →
+              </button>
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePrivy } from "@privy-io/react-auth";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
@@ -178,6 +179,7 @@ const AUDIT_HISTORY_PLACEHOLDERS = [
 ];
 
 export default function Home() {
+  const { authenticated, user } = usePrivy();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -192,6 +194,8 @@ export default function Home() {
   const [selectedFeatureModal, setSelectedFeatureModal] = useState<"konsorsium" | "blockchain" | "diff" | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+
+  const isUserAuthenticated = authenticated || isLoggedIn;
 
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
@@ -249,6 +253,12 @@ export default function Home() {
     e.preventDefault();
     if (!query.trim() || isLoading) return;
 
+    // Jika belum login, wajibkan login terlebih dahulu agar pemeriksaan tercatat resmi
+    if (!isUserAuthenticated) {
+      setIsLoginOpen(true);
+      return;
+    }
+
     setIsLoading(true);
     setServerNotice(null);
 
@@ -259,11 +269,18 @@ export default function Home() {
     }, 50);
 
     try {
+      const addressToSend =
+        user?.wallet?.address ||
+        (userEmail ? userEmail : "0x0000000000000000000000000000000000000000");
+
       // Connect to real FastAPI backend if running
       const res = await fetch("http://localhost:8000/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim() }),
+        body: JSON.stringify({
+          query: query.trim(),
+          userAddress: addressToSend,
+        }),
       });
 
       if (res.ok) {

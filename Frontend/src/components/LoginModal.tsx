@@ -110,7 +110,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               Masuk Akun
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400">
-              VeritasChain News Verification
+              Masuk terlebih dahulu agar hasil audit pemeriksaan tercatat
             </p>
           </div>
         </div>

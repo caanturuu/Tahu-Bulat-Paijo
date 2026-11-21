@@ -74,7 +74,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   // Status visual attributes
   let verdictTitle = "BELUM DIUJI";
   let verdictSubtitle = "MENUNGGU INPUT BERITA";
-  let verdictBadgeBg = "bg-slate-100 border-slate-300 text-slate-700";
+  let verdictBadgeBg = "bg-white border-slate-300 text-slate-700";
   let scoreColor = "text-slate-400";
   let barColor = "bg-slate-300";
   let barWidth = "0%";
@@ -83,7 +83,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   if (isHoax) {
     verdictTitle = "HOAKS / KONTEN PALSU";
     verdictSubtitle = "FABRICATED / FALSE CONTENT";
-    verdictBadgeBg = "bg-rose-100 border-rose-300 text-rose-800";
+    verdictBadgeBg = "bg-white border-rose-500 text-rose-700";
     scoreColor = "text-rose-600";
     barColor = "bg-rose-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -91,7 +91,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   } else if (isMeragukan) {
     verdictTitle = "KONTEN MENYESATKAN";
     verdictSubtitle = "MISLEADING CONTENT";
-    verdictBadgeBg = "bg-amber-100 border-amber-300 text-amber-900";
+    verdictBadgeBg = "bg-white border-amber-500 text-amber-800";
     scoreColor = "text-amber-600";
     barColor = "bg-amber-500";
     barWidth = `${Math.max(score, 14)}%`;
@@ -99,7 +99,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   } else if (isBenar) {
     verdictTitle = "FAKTA VALID / TERKONFIRMASI";
     verdictSubtitle = "VERIFIED ACCURATE CONTENT";
-    verdictBadgeBg = "bg-emerald-100 border-emerald-300 text-emerald-800";
+    verdictBadgeBg = "bg-white border-emerald-500 text-emerald-700";
     scoreColor = "text-emerald-700";
     barColor = "bg-emerald-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -476,14 +476,14 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
 
           {/* Highlighted Conclusion Card (break-words keeps normal words intact) */}
           <div
-            className={`rounded-2xl border p-5 sm:p-6 transition-all w-full ${
+            className={`rounded-2xl border p-5 sm:p-6 transition-all w-full bg-white shadow-2xs ${
               isHoax
-                ? "bg-rose-50/60 border-rose-200 text-rose-950"
+                ? "border-rose-300 text-slate-900"
                 : isMeragukan
-                ? "bg-amber-50/60 border-amber-200 text-amber-950"
+                ? "border-amber-300 text-slate-900"
                 : isBenar
-                ? "bg-emerald-50/60 border-emerald-200 text-emerald-950"
-                : "bg-slate-50 border-slate-200 text-slate-600"
+                ? "border-emerald-300 text-slate-900"
+                : "border-slate-200 text-slate-600"
             }`}
           >
             <div className="flex items-start gap-3.5">

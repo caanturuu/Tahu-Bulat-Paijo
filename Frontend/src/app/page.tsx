@@ -251,20 +251,18 @@ export default function Home() {
         const liveData = await res.json();
         setResult(liveData);
       } else {
-        // Backend returned non-200, run simulated news validation
         const simulated = simulateNewsValidation(query.trim());
         setResult(simulated);
         setServerNotice(
-          `[Mode Simulasi Aktif] Backend merespons status ${res.status}. Menampilkan simulasi validasi berita untuk: "${query.trim()}".`
+          "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
         );
       }
     } catch {
-      // Backend offline / not running: run simulated news validation with realistic delay
-      await new Promise((resolve) => setTimeout(resolve, 650));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const simulated = simulateNewsValidation(query.trim());
       setResult(simulated);
       setServerNotice(
-        `[Mode Simulasi Aktif] Menampilkan hasil simulasi deteksi konten & validasi fakta untuk: "${query.trim()}".`
+        "Simulasi: contoh hasil untuk klaim ini, bukan data langsung."
       );
     } finally {
       setIsLoading(false);
@@ -291,6 +289,9 @@ export default function Home() {
     setQuery(title);
     setActiveTab("Cek Fakta");
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const simulated = simulateNewsValidation(title);
+    setResult(simulated);
+    setServerNotice("Simulasi: contoh hasil untuk klaim ini, bukan data langsung.");
   };
 
   // Reusable Hoax News Section (matching uploaded reference)
@@ -674,54 +675,16 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Section: Always visible with Empty Card (Card Kosong) or Live Results */}
-          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-10 sm:py-16">
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-zinc-800">
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-white tracking-tight">
-                  <FileSearch className="h-5 w-5 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
-                  Hasil Pemeriksaan Fakta & Audit Blockchain
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                  {result
-                    ? "Hasil analisis verifikasi AI dan pencatatan audit on-chain."
-                    : "Card kosong siap pakai. Masukkan tautan berita, unggah tangkapan layar, atau ketik informasi pada bilah pencarian di atas."}
-                </p>
-              </div>
-              {result && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResult(null);
-                    setServerNotice(null);
-                  }}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-auto"
-                >
-                  Kembalikan ke Card Kosong
-                </button>
-              )}
-            </div>
-
-            {/* Server notice banner if backend is offline */}
-            {serverNotice && (
-              <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start justify-between gap-3 animate-in fade-in">
-                <div className="flex items-start gap-2.5">
-                  <span className="font-bold shrink-0 text-[#185adb] dark:text-blue-400">Info:</span>
-                  <span className="leading-relaxed">{serverNotice}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setServerNotice(null)}
-                  className="font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 shrink-0 cursor-pointer"
-                  title="Tutup pemberitahuan"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {/* ResultCard: Displays Card Kosong when data is null, displays verified data when present */}
-            <ResultCard data={result} />
+          {/* Verification Result Section: Redesigned based on Image 1 Reference */}
+          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-8 sm:py-14 animate-in fade-in duration-300">
+            <ResultCard
+              data={result}
+              notice={serverNotice}
+              onReset={() => {
+                setResult(null);
+                setServerNotice(null);
+              }}
+            />
           </section>
         </>
       )}

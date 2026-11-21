@@ -14,7 +14,7 @@ export interface VerificationResult {
   publishedDate?: string;
   articleHash: string;
   credibilityScore: number; // 0 - 100
-  status: "VALID" | "QUESTIONABLE" | "HOAX" | "NON_NEWS";
+  status: "VALID" | "QUESTIONABLE" | "HOAX";
   summary: string;
   keyFindings: string[];
   claimsReview: FactCheckClaim[];
@@ -27,14 +27,6 @@ export interface VerificationResult {
     addedWords: number;
     removedWords: number;
     diffHtml?: string;
-  };
-  // News validation / classification fields
-  isNews?: boolean;
-  contentType?: "BERITA" | "BUKAN_BERITA";
-  validationReason?: string;
-  nonNewsDetails?: {
-    queryType?: string;
-    suggestion?: string;
   };
 }
 

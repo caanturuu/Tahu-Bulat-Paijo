@@ -75,7 +75,6 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   let verdictTitle = "BELUM DIUJI";
   let verdictSubtitle = "MENUNGGU INPUT BERITA";
   let verdictBadgeBg = "bg-slate-100 border-slate-300 text-slate-700";
-  let verdictScoreBoxBg = "bg-slate-50 border-slate-200";
   let scoreColor = "text-slate-400";
   let barColor = "bg-slate-300";
   let barWidth = "0%";
@@ -85,7 +84,6 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "HOAKS / KONTEN PALSU";
     verdictSubtitle = "FABRICATED / FALSE CONTENT";
     verdictBadgeBg = "bg-rose-100 border-rose-300 text-rose-800";
-    verdictScoreBoxBg = "bg-rose-50/50 border-rose-200";
     scoreColor = "text-rose-600";
     barColor = "bg-rose-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -94,7 +92,6 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "KONTEN MENYESATKAN";
     verdictSubtitle = "MISLEADING CONTENT";
     verdictBadgeBg = "bg-amber-100 border-amber-300 text-amber-900";
-    verdictScoreBoxBg = "bg-amber-50/50 border-amber-200";
     scoreColor = "text-amber-600";
     barColor = "bg-amber-500";
     barWidth = `${Math.max(score, 14)}%`;
@@ -103,7 +100,6 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
     verdictTitle = "FAKTA VALID / TERKONFIRMASI";
     verdictSubtitle = "VERIFIED ACCURATE CONTENT";
     verdictBadgeBg = "bg-emerald-100 border-emerald-300 text-emerald-800";
-    verdictScoreBoxBg = "bg-emerald-50/50 border-emerald-200";
     scoreColor = "text-emerald-700";
     barColor = "bg-emerald-600";
     barWidth = `${Math.max(score, 14)}%`;
@@ -123,7 +119,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
   const displayIpfs = isPopulated ? shortenHash(rawIpfs, 6) : "Qm0000...0000";
   const displayTx = isPopulated && rawTx ? shortenHash(rawTx, 6) : "";
 
-  // Content for Narasi, Penjelasan, and Kesimpulan
+  // Review & verifier details
   const primaryClaim = data?.claimsReview?.[0];
   const reviewPublisher =
     primaryClaim?.reviewPublisher ||
@@ -149,56 +145,12 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       `Beredar di ${data?.publisher || "media sosial dan media daring publik"} dengan klaim: "${data?.title}". Informasi ini menyebar secara viral melalui tangkapan layar dan pesan terusan tanpa rujukan sumber resmi yang jelas.`
     : "Klaim berita atau tangkapan layar yang beredar di media sosial akan ditampilkan di sini sebagai rujukan narasi awal yang diperiksa.";
 
-  // 2. Penjelasan Text & Points
+  // 2. Penjelasan Text
   const explanationText = isPopulated
     ? data?.explanation ||
       data?.summary ||
       "Pemeriksaan fakta dilakukan dengan menelusuri sumber primer rilis kementerian, arsip keputusan lembaran negara, dan pencarian gambar terbalik (Google Lens) untuk memvalidasi konteks peristiwa."
     : "Metodologi penelusuran fakta melalui pencarian gambar terbalik, verifikasi silang basis data regulasi pemerintah, dan konfirmasi langsung ke kementerian/lembaga terkait akan dipaparkan secara runtut di sini.";
-
-  // Numbered findings points
-  const defaultFindings = [
-    {
-      num: "01",
-      title: "Penelusuran Arsip & Sumber Asli",
-      desc: "Menelusuri kronologi rekaman atau dokumen untuk mencocokkan tanggal kejadian sebenarnya.",
-    },
-    {
-      num: "02",
-      title: "Verifikasi Regulasi & Instansi",
-      desc: "Memeriksa lembaran negara dan siaran pers resmi dari kementerian atau lembaga berwenang.",
-    },
-    {
-      num: "03",
-      title: "Himbauan Literasi Publik",
-      desc: "Masyarakat diimbau selalu memverifikasi konteks utuh informasi sebelum menyebarkannya.",
-    },
-  ];
-
-  let displayFindings = defaultFindings;
-  if (isPopulated && data?.keyFindings && data.keyFindings.length > 0) {
-    displayFindings = data.keyFindings.slice(0, 3).map((item, idx) => {
-      const num = String(idx + 1).padStart(2, "0");
-      if (item.includes(":")) {
-        const parts = item.split(":");
-        return {
-          num,
-          title: parts[0].trim(),
-          desc: parts.slice(1).join(":").trim(),
-        };
-      }
-      const fallbackTitles = [
-        "Status Verifikasi",
-        "Konteks Faktual",
-        "Himbauan & Rekomendasi",
-      ];
-      return {
-        num,
-        title: fallbackTitles[idx] || `Poin Analisis #${idx + 1}`,
-        desc: item.trim(),
-      };
-    });
-  }
 
   // 3. Kesimpulan Text
   const conclusionText = isPopulated
@@ -321,7 +273,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
             </div>
           </div>
 
-          {/* Kolom Kanan: 4 Kolom (Skor Kredibilitas - 100% Terkandung di Dalam Grid, Tidak Offside) */}
+          {/* Kolom Kanan: 4 Kolom (Skor Kredibilitas - 100% Terkandung di Dalam Grid) */}
           <div className="lg:col-span-4 flex flex-col justify-between rounded-2xl border p-5 shadow-2xs w-full min-w-0 bg-white">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
@@ -358,7 +310,7 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
           </div>
         </div>
 
-        {/* Baris Bawah Card 1: Bukti Audit On-Chain (Base L2) Terintegrasi Penuh */}
+        {/* Baris Bawah Card 1: Bukti Audit On-Chain (Base L2) */}
         <div className="mt-6 pt-5 border-t border-slate-100 text-xs">
           <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
             Bukti Kriptografis & On-Chain (Base Sepolia L2)
@@ -418,158 +370,145 @@ export function ResultCard({ data, notice, onReset }: ResultCardProps) {
       </div>
 
       {/* ============================================================== */}
-      {/* KARTU 2: NARASI (BERITA YANG BEREDAR)                           */}
+      {/* KARTU 2: LAPORAN PEMERIKSAAN FAKTA (NARASI, PENJELASAN, KESIMPULAN) */}
       {/* ============================================================== */}
-      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-        <div className="mb-4">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-[#185adb]" />
-            Narasi
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Klaim dan naskah berita yang beredar di ruang publik dan media sosial
-          </p>
-        </div>
-
-        {/* Narrative Quote Block (break-words prevents word splitting) */}
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 sm:p-6 border-l-4 border-l-slate-400">
-          <p
-            className={`text-sm sm:text-base leading-relaxed break-words ${
-              isPopulated ? "text-slate-800 font-normal" : "text-slate-400 italic"
-            }`}
-          >
-            {narrativeText}
-          </p>
-
-          {data?.url && (
-            <div className="mt-3.5 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs text-slate-500 break-words">
-              <span className="font-semibold text-slate-600 shrink-0">Tautan Berita:</span>
-              <a
-                href={data.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#185adb] hover:underline break-all inline-flex items-center gap-1"
-              >
-                <span>{data.url}</span>
-                <ExternalLink className="h-3 w-3 shrink-0" />
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* KARTU 3: PENJELASAN (INVESTIGASI & ANALISIS FAKTUAL)            */}
-      {/* ============================================================== */}
-      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-        <div className="mb-4">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText className="h-4 w-4 text-[#185adb]" />
-            Penjelasan
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Metodologi investigasi fakta, penelusuran sumber primer, dan verifikasi silang data
-          </p>
-        </div>
-
-        <div className="space-y-5">
-          {/* Main Explanation Paragraph (break-words keeps normal words intact) */}
-          <p
-            className={`text-sm sm:text-base leading-relaxed break-words ${
-              isPopulated ? "text-slate-800" : "text-slate-400 italic"
-            }`}
-          >
-            {explanationText}
-          </p>
-
-          {/* Numbered Investigative Findings */}
-          <div className="pt-4 border-t border-slate-100 space-y-3.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Poin Kunci Penelusuran Fakta:
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              {displayFindings.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 text-xs sm:text-sm"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white border border-slate-200 font-mono text-[11px] font-bold text-slate-600 shrink-0">
-                      {item.num}
-                    </span>
-                    <h5 className="font-bold text-slate-900 leading-snug break-words">
-                      {item.title}
-                    </h5>
-                  </div>
-                  <p className="text-slate-600 leading-relaxed text-xs break-words">
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Visual Diff Viewer if Article Content Changed */}
-          {data?.hasRevisions && (
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <DiffViewer
-                addedWords={data.diffSummary?.addedWords}
-                removedWords={data.diffSummary?.removedWords}
-                diffHtml={data.diffSummary?.diffHtml}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ============================================================== */}
-      {/* KARTU 4: KESIMPULAN (VERDICT AKHIR)                             */}
-      {/* ============================================================== */}
-      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-        <div className="mb-3">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <HelpCircle className="h-4 w-4 text-[#185adb]" />
-            Kesimpulan
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Rangkuman kepastian faktual definitif bagi masyarakat
-          </p>
-        </div>
-
-        {/* Highlighted Conclusion Card (break-words keeps normal words intact) */}
-        <div
-          className={`rounded-2xl border p-5 sm:p-6 transition-all w-full ${
-            isHoax
-              ? "bg-rose-50/60 border-rose-200 text-rose-950"
-              : isMeragukan
-              ? "bg-amber-50/60 border-amber-200 text-amber-950"
-              : isBenar
-              ? "bg-emerald-50/60 border-emerald-200 text-emerald-950"
-              : "bg-slate-50 border-slate-200 text-slate-600"
-          }`}
-        >
-          <div className="flex items-start gap-3.5">
-            <div className="mt-0.5 shrink-0">
-              {isHoax ? (
-                <AlertOctagon className="h-5 w-5 text-rose-600" strokeWidth={2.2} />
-              ) : isMeragukan ? (
-                <AlertTriangle className="h-5 w-5 text-amber-600" strokeWidth={2.2} />
-              ) : isBenar ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
-              ) : (
-                <FileSearch className="h-5 w-5 text-slate-400" strokeWidth={2} />
-              )}
-            </div>
-
-            <p
-              className={`text-sm sm:text-base leading-relaxed break-words ${
-                isPopulated ? "font-medium" : "italic text-slate-500"
-              }`}
+      <div className="w-full rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-8">
+        {/* BAGIAN 1: NARASI */}
+        <section aria-labelledby="section-narasi">
+          <div className="mb-3">
+            <h3
+              id="section-narasi"
+              className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2"
             >
-              {conclusionText}
+              <BookOpen className="h-4 w-4 text-[#185adb]" />
+              Narasi
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Klaim dan naskah berita yang beredar di ruang publik dan media sosial
             </p>
           </div>
-        </div>
+
+          {/* Narrative Quote Block (break-words prevents word splitting) */}
+          <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 sm:p-6 border-l-4 border-l-slate-400">
+            <p
+              className={`text-sm sm:text-base leading-relaxed break-words ${
+                isPopulated ? "text-slate-800 font-normal" : "text-slate-400 italic"
+              }`}
+            >
+              {narrativeText}
+            </p>
+
+            {data?.url && (
+              <div className="mt-3.5 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs text-slate-500 break-words">
+                <span className="font-semibold text-slate-600 shrink-0">Tautan Berita:</span>
+                <a
+                  href={data.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#185adb] hover:underline break-all inline-flex items-center gap-1 font-mono text-[11px]"
+                >
+                  <span>{data.url}</span>
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Divider halus antar bagian */}
+        <div className="border-t border-slate-100" />
+
+        {/* BAGIAN 2: PENJELASAN (POIN KUNCI BOX TELAH DIHAPUS) */}
+        <section aria-labelledby="section-penjelasan">
+          <div className="mb-3">
+            <h3
+              id="section-penjelasan"
+              className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4 text-[#185adb]" />
+              Penjelasan
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Metodologi investigasi fakta, penelusuran sumber primer, dan verifikasi silang data
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* Main Explanation Paragraph (break-words keeps normal words intact) */}
+            <p
+              className={`text-sm sm:text-base leading-relaxed break-words ${
+                isPopulated ? "text-slate-800" : "text-slate-400 italic"
+              }`}
+            >
+              {explanationText}
+            </p>
+
+            {/* Visual Diff Viewer if Article Content Changed */}
+            {data?.hasRevisions && (
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <DiffViewer
+                  addedWords={data.diffSummary?.addedWords}
+                  removedWords={data.diffSummary?.removedWords}
+                  diffHtml={data.diffSummary?.diffHtml}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Divider halus antar bagian */}
+        <div className="border-t border-slate-100" />
+
+        {/* BAGIAN 3: KESIMPULAN */}
+        <section aria-labelledby="section-kesimpulan">
+          <div className="mb-3">
+            <h3
+              id="section-kesimpulan"
+              className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4 text-[#185adb]" />
+              Kesimpulan
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Rangkuman kepastian faktual definitif bagi masyarakat
+            </p>
+          </div>
+
+          {/* Highlighted Conclusion Card (break-words keeps normal words intact) */}
+          <div
+            className={`rounded-2xl border p-5 sm:p-6 transition-all w-full ${
+              isHoax
+                ? "bg-rose-50/60 border-rose-200 text-rose-950"
+                : isMeragukan
+                ? "bg-amber-50/60 border-amber-200 text-amber-950"
+                : isBenar
+                ? "bg-emerald-50/60 border-emerald-200 text-emerald-950"
+                : "bg-slate-50 border-slate-200 text-slate-600"
+            }`}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="mt-0.5 shrink-0">
+                {isHoax ? (
+                  <AlertOctagon className="h-5 w-5 text-rose-600" strokeWidth={2.2} />
+                ) : isMeragukan ? (
+                  <AlertTriangle className="h-5 w-5 text-amber-600" strokeWidth={2.2} />
+                ) : isBenar ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
+                ) : (
+                  <FileSearch className="h-5 w-5 text-slate-400" strokeWidth={2} />
+                )}
+              </div>
+
+              <p
+                className={`text-sm sm:text-base leading-relaxed break-words ${
+                  isPopulated ? "font-medium" : "italic text-slate-500"
+                }`}
+              >
+                {conclusionText}
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

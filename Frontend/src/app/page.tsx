@@ -34,67 +34,67 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// 10 Curated Indonesian News Context Backgrounds
+// 10 Curated Indonesian Viral News Backgrounds (Foto Berita Terkini Hari Ini)
 const INDONESIA_NEWS_BACKGROUNDS = [
   {
     src: "/news-bg/bg-1.jpg",
-    alt: "Kepulauan Raja Ampat Papua",
-    title: "Kedaulatan Maritim & Pariwisata Indonesia",
-    tag: "Geopolitik & Kelautan",
+    alt: "Aksi Unjuk Rasa Mahasiswa di Depan Gedung DPR RI Senayan",
+    title: "Aksi Mahasiswa & Kawal Aspirasi Publik di DPR RI",
+    tag: "Demokrasi & Aspirasi",
   },
   {
     src: "/news-bg/bg-2.jpg",
-    alt: "Skyline Jakarta & Bundaran HI",
-    title: "Pusat Ekonomi, Bisnis & Finansial Nasional",
-    tag: "Ekonomi & Pasar",
+    alt: "Sidang Paripurna Kabinet Merah Putih di Istana Merdeka Jakarta",
+    title: "Sidang Paripurna Kabinet & Arah Kebijakan Pemerintahan",
+    tag: "Politik & Kabinet",
   },
   {
     src: "/news-bg/bg-3.jpg",
-    alt: "Gunung Bromo & Wilayah Vulkanik",
-    title: "Mitigasi Bencana & Kawasan Vulkanologi",
-    tag: "Bencana & Lingkungan",
+    alt: "Pengungkapan Sindikat Judi Online & Cyber Crime Komdigi oleh Polri",
+    title: "Operasi Satgas Siber & Pemberantasan Judi Online",
+    tag: "Hukum & Siber",
   },
   {
     src: "/news-bg/bg-4.jpg",
-    alt: "Terasering Pertanian Nusantara",
-    title: "Ketahanan Pangan & Kebijakan Agraria",
-    tag: "Pangan & Pertanian",
+    alt: "Antrean Warga Pembelian Beras Murah SPHP Bulog di Pasar Tradisional",
+    title: "Distribusi Beras SPHP Bulog & Stabilitas Pangan Pokok",
+    tag: "Pangan & Ekonomi",
   },
   {
     src: "/news-bg/bg-5.jpg",
-    alt: "Monumen Nasional Monas Jakarta",
-    title: "Pusat Kebijakan Politik & Pemerintahan RI",
-    tag: "Politik Nasional",
+    alt: "Ruang Sidang Kasus Tipikor Komoditas Strategis di PN Jakarta Pusat",
+    title: "Sidang Tipikor Kasus Korupsi Komoditas Strategis",
+    tag: "Pemberantasan Korupsi",
   },
   {
     src: "/news-bg/bg-6.jpg",
-    alt: "Redaksi Surat Kabar & Media Pers",
-    title: "Verifikasi Jurnalisme & Media Massa",
-    tag: "Cek Fakta Pers",
+    alt: "Erupsi Gunung Lewotobi Laki-Laki & Evakuasi Pengungsi di NTT",
+    title: "Tanggap Darurat Erupsi Vulkanik Gunung Lewotobi NTT",
+    tag: "Bencana Vulkanik",
   },
   {
     src: "/news-bg/bg-7.jpg",
-    alt: "Infrastruktur Transportasi Modern",
-    title: "Konektivitas & Proyek Infrastruktur Publik",
+    alt: "Kereta Cepat Whoosh Melaju Cepat di Jalur Layang Jawa Barat",
+    title: "Operasional Kereta Cepat Whoosh & Konektivitas Modern",
     tag: "Infrastruktur",
   },
   {
     src: "/news-bg/bg-8.jpg",
-    alt: "Konferensi Pers & Wawancara Pejabat",
-    title: "Klarifikasi Pernyataan Resmi & Siaran Pers",
-    tag: "Rilis Publik",
+    alt: "Kemegahan Istana Garuda Ibu Kota Nusantara (IKN) Kalimantan Timur",
+    title: "Progres Pembangunan Kawasan Istana Garuda IKN",
+    tag: "Ibu Kota Nusantara",
   },
   {
     src: "/news-bg/bg-9.jpg",
-    alt: "Candi Borobudur Warisan Bangsa",
-    title: "Warisan Sejarah, Budaya & Kebhinekaan",
-    tag: "Sosial Budaya",
+    alt: "Patroli KRI TNI AL & Kapal Bakamla Mengawal Kedaulatan Laut Natuna",
+    title: "Patroli Kedaulatan Wilayah Maritim Laut Natuna Utara",
+    tag: "Kedaulatan Maritim",
   },
   {
     src: "/news-bg/bg-10.jpg",
-    alt: "Kawasan Pesisir & Garis Pantai Indonesia",
-    title: "Kehidupan Nelayan & Sumber Daya Pesisir",
-    tag: "Kemaritiman",
+    alt: "Konferensi Pers Konsorsium Cek Fakta Jurnalisme Nasional di Jakarta",
+    title: "Konsorsium Cek Fakta & Verifikasi Isu Viral Hoaks",
+    tag: "Cek Fakta & Media",
   },
 ];
 
@@ -671,6 +671,39 @@ export default function Home() {
                     )}
                   </button>
                 </form>
+              </div>
+
+              {/* Live News Photo Context Capsule & Carousel Navigation */}
+              <div className="mt-8 sm:mt-12 inline-flex flex-col items-center gap-2.5">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-3.5 py-1.5 border border-slate-200/80 dark:border-zinc-800 shadow-sm text-xs transition-all">
+                  <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                  <span className="font-semibold text-slate-700 dark:text-zinc-200 text-[11px] sm:text-xs">
+                    Foto Berita #{currentBgIndex + 1}:
+                  </span>
+                  <span className="text-slate-600 dark:text-zinc-400 text-[11px] sm:text-xs font-medium max-w-[200px] sm:max-w-md truncate">
+                    {INDONESIA_NEWS_BACKGROUNDS[currentBgIndex].title}
+                  </span>
+                  <span className="hidden sm:inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300">
+                    {INDONESIA_NEWS_BACKGROUNDS[currentBgIndex].tag}
+                  </span>
+                </div>
+
+                {/* 10 Interactive Dot Buttons */}
+                <div className="flex items-center gap-1.5">
+                  {INDONESIA_NEWS_BACKGROUNDS.map((bg, idx) => (
+                    <button
+                      key={bg.src}
+                      type="button"
+                      onClick={() => setCurrentBgIndex(idx)}
+                      className={`h-1.5 transition-all rounded-full ${
+                        idx === currentBgIndex
+                          ? "w-6 bg-[#185adb] dark:bg-blue-500"
+                          : "w-1.5 bg-slate-400/50 hover:bg-slate-600 dark:bg-zinc-600 dark:hover:bg-zinc-400"
+                      }`}
+                      title={`Foto #${idx + 1}: ${bg.title}`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </section>

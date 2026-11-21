@@ -42,9 +42,31 @@ class VerificationResult(BaseModel):
     timestamp: str
     hasRevisions: Optional[bool] = False
     diffSummary: Optional[DiffSummary] = None
+    verifyTicket: Optional[str] = None
 
 class RescanResponse(BaseModel):
     url: str
     currentHash: str
     hasRevisions: bool
     diffSummary: DiffSummary
+
+class RelayRequest(BaseModel):
+    userAddress: str
+    articleHash: str
+    articleKey: Optional[str] = None
+    url: Optional[str] = None
+    credibilityScore: int = Field(ge=0, le=100)
+    ipfsCid: str
+    deadline: int
+    signature: str
+    verifyTicket: Optional[str] = None
+
+class RelayResponse(BaseModel):
+    status: str  # "success" | "duplicate_skipped"
+    txHash: Optional[str] = None
+    explorerUrl: Optional[str] = None
+    blockNumber: Optional[int] = None
+    recordId: Optional[int] = None
+    articleKey: str
+    remainingDailyQuota: Optional[int] = None
+

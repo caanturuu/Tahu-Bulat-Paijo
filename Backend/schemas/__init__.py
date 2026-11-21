@@ -5,6 +5,8 @@ from .verification import (
     RescanRequest,
     VerificationResult,
     RescanResponse,
+    RelayRequest,
+    RelayResponse,
 )
 
 __all__ = [
@@ -14,4 +16,7 @@ __all__ = [
     "RescanRequest",
     "VerificationResult",
     "RescanResponse",
+    "RelayRequest",
+    "RelayResponse",
 ]
+

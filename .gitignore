@@ -53,3 +53,7 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Graphify
+graphify-out/
+.graphify_*

@@ -1,9 +1,12 @@
-# Environment variables
+# Environment variables (Global & all subdirectories)
 .env
+.env.*
 .env*.local
 .env.development
 .env.test
 .env.production
+**/.env
+**/.env.*
 
 # Node / Frontend
 node_modules/

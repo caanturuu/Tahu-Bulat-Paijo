@@ -107,25 +107,6 @@ const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 15 }, (_, i) => ({
   date: "Menunggu data API",
 }));
 
-// Placeholder slots for Popular Trending Hoax items
-const POPULAR_HOAX_PLACEHOLDERS = [
-  {
-    rank: 1,
-    title: "[Menunggu data agregasi artikel terpopuler #1]",
-    views: "-- dibaca",
-  },
-  {
-    rank: 2,
-    title: "[Menunggu data agregasi artikel terpopuler #2]",
-    views: "-- dibaca",
-  },
-  {
-    rank: 3,
-    title: "[Menunggu data agregasi artikel terpopuler #3]",
-    views: "-- dibaca",
-  },
-];
-
 // Placeholder verification result for diff demo (Neutral template, no fake news)
 const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
   url: "https://contoh-portal-berita.id/artikel-contoh",
@@ -573,40 +554,9 @@ export default function Home() {
             </div>
           </div>
 
-        {/* Right Column: Sidebar Placeholders (Static / Non-sticky) */}
+        {/* Right Column: Sidebar (Poster Kampanye Literasi) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Card 1: Berita Terpopuler Saat Ini (Placeholder) */}
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-              Berita Terpopuler Saat Ini
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-5">
-              Slot agregasi otomatis isu hoaks yang paling banyak diakses oleh publik.
-            </p>
-
-            <div className="space-y-4">
-              {POPULAR_HOAX_PLACEHOLDERS.map((pop) => (
-                <div key={pop.rank} className="flex items-center gap-3.5">
-                  <span className="text-xl font-extrabold text-slate-300 dark:text-zinc-600 w-5 shrink-0">
-                    {pop.rank}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-xs text-slate-400 dark:text-zinc-500 line-clamp-2 leading-snug">
-                      {pop.title}
-                    </h4>
-                    <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-600">
-                      {pop.views} • <span>Menunggu Data</span>
-                    </p>
-                  </div>
-                  <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-200 dark:border-zinc-700 flex items-center justify-center text-slate-300 dark:text-zinc-600">
-                    <FileSearch className="h-5 w-5" strokeWidth={1.5} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Card 2: Kampanye Literasi Informasi Digital (Poster Resmi - Proporsional) */}
+          {/* Kampanye Literasi Informasi Digital (Poster Resmi - Proporsional) */}
           <div className="flex justify-center w-full pt-1">
             <div className="relative overflow-hidden rounded-3xl w-full max-w-[270px] shadow-sm hover:shadow-md transition-all">
               <Image

@@ -676,8 +676,8 @@ export default function Home() {
       {/* ================= TAB 1: CEK FAKTA (DEFAULT) ================= */}
       {activeTab === "Cek Fakta" && (
         <>
-          {/* Hero Section with 10 Rotating Indonesian News Backgrounds (Every 15s) - Full Viewport Stability min-h-[100dvh] */}
-          <section className="relative w-full overflow-hidden bg-slate-900 min-h-[100dvh] flex flex-col items-center justify-center py-12 sm:py-20 lg:py-24">
+          {/* Hero Section with 10 Rotating Indonesian News Backgrounds (Every 15s) - Full Viewport Fit */}
+          <section className="relative w-full overflow-hidden bg-slate-900 min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center py-12 sm:py-20 lg:py-24">
             {/* 10 Layered Rotating Background Images with Smooth Crossfade */}
             <div className="absolute inset-0 z-0">
               {INDONESIA_NEWS_BACKGROUNDS.map((bg, idx) => (
@@ -759,55 +759,56 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Section: Always visible with Empty Card (Card Kosong) or Live Results */}
-          <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-10 sm:py-16">
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-zinc-800">
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-white tracking-tight">
-                  <FileSearch className="h-5 w-5 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
-                  Hasil Pemeriksaan Fakta & Audit Blockchain
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                  {result
-                    ? "Hasil analisis verifikasi AI dan pencatatan audit on-chain."
-                    : "Card kosong siap pakai. Masukkan tautan berita, unggah tangkapan layar, atau ketik informasi pada bilah pencarian di atas."}
-                </p>
-              </div>
-              {result && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResult(null);
-                    setServerNotice(null);
-                  }}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-auto"
-                >
-                  Kembalikan ke Card Kosong
-                </button>
-              )}
-            </div>
-
-            {/* Server notice banner if backend is offline */}
-            {serverNotice && (
-              <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start justify-between gap-3 animate-in fade-in">
-                <div className="flex items-start gap-2.5">
-                  <span className="font-bold shrink-0 text-[#185adb] dark:text-blue-400">Info:</span>
-                  <span className="leading-relaxed">{serverNotice}</span>
+          {/* Verification Result Section: Only appears when examining or result exists */}
+          {(result || isLoading) && (
+            <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-10 sm:py-16 scroll-mt-20 animate-in fade-in duration-300">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-zinc-800">
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-white tracking-tight">
+                    <FileSearch className="h-5 w-5 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
+                    Hasil Pemeriksaan Fakta & Audit Blockchain
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Hasil analisis verifikasi AI dan pencatatan audit on-chain.
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setServerNotice(null)}
-                  className="font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 shrink-0 cursor-pointer"
-                  title="Tutup pemberitahuan"
-                >
-                  ✕
-                </button>
+                {result && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResult(null);
+                      setServerNotice(null);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer self-start sm:self-auto"
+                  >
+                    Tutup Hasil & Kembali
+                  </button>
+                )}
               </div>
-            )}
 
-            {/* ResultCard: Displays Card Kosong when data is null, displays verified data when present */}
-            <ResultCard data={result} />
-          </section>
+              {/* Server notice banner if backend is offline */}
+              {serverNotice && (
+                <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start justify-between gap-3 animate-in fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <span className="font-bold shrink-0 text-[#185adb] dark:text-blue-400">Info:</span>
+                    <span className="leading-relaxed">{serverNotice}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setServerNotice(null)}
+                    className="font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 shrink-0 cursor-pointer"
+                    title="Tutup pemberitahuan"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* ResultCard: Displays verified data */}
+              <ResultCard data={result} />
+            </section>
+          )}
         </>
       )}
 

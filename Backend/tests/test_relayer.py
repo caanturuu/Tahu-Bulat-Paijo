@@ -19,9 +19,7 @@ import main as backend_main  # noqa: E402
 from services import privy_auth, relayer  # noqa: E402
 
 
-DEPLOYMENT_ARTIFACT = json.loads(
-    (BACKEND_DIR.parent / "Contracts" / "deployments" / "sepolia.json").read_text(encoding="utf-8")
-)
+DEPLOYMENT_ARTIFACT = json.loads(relayer._DEPLOYMENT_FILE.read_text(encoding="utf-8"))
 
 
 def _sign_eip712(

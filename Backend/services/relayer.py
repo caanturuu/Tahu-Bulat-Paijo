@@ -19,7 +19,21 @@ from web3.exceptions import ContractLogicError
 import config
 from schemas import RelayRequest, RelayResponse
 
-_DEPLOYMENT_FILE = Path(__file__).resolve().parents[2] / "Contracts" / "deployments" / "sepolia.json"
+def _get_deployment_file() -> Path:
+    backend_deploy = Path(__file__).resolve().parents[1] / "deployments" / "sepolia.json"
+    if backend_deploy.exists():
+        return backend_deploy
+    root = Path(__file__).resolve().parents[2]
+    candidates = [
+        root / "contracts" / "deployments" / "sepolia.json",
+        root / "Contracts" / "deployments" / "sepolia.json",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return root / "contracts" / "deployments" / "sepolia.json"
+
+_DEPLOYMENT_FILE = _get_deployment_file()
 _DAY_SECONDS = 86400
 _SEPOLIA_EXPLORER_TX = "https://sepolia.etherscan.io/tx/"
 
@@ -588,3 +602,68 @@ async def get_relayer_status() -> Dict[str, Any]:
     except Exception:
         pass
     return await asyncio.to_thread(relay_guard.snapshot_global, bal_wei, gas_wei)
+
+
+def get_onchain_status() -> Dict[str, Any]:
+    """Retrieve verified on-chain contract state and metadata from Ethereum Sepolia."""
+    w3, contract, artifact = get_contract_bundle()
+    total_records = contract.functions.totalRecords().call()
+    return {
+        "contractName": artifact.get("contractName", "VeritasChain"),
+        "network": artifact.get("network", "sepolia"),
+        "chainId": artifact.get("chainId", 11155111),
+        "contractAddress": contract.address,
+        "totalRecords": total_records,
+        "explorerUrl": artifact.get("explorerUrl", f"https://sepolia.etherscan.io/address/{contract.address}"),
+        "deploymentTx": artifact.get("txHash"),
+        "deployer": artifact.get("deployer"),
+        "eip712Domain": artifact.get("eip712", {}).get("domain", {}),
+        "rpcConnected": w3.is_connected(),
+    }
+
+
+def get_onchain_record(record_id: int) -> Dict[str, Any]:
+    """Retrieve a single on-chain verification record from VeritasChain smart contract."""
+    w3, contract, _ = get_contract_bundle()
+    try:
+        rec = contract.functions.getRecord(int(record_id)).call()
+        return {
+            "recordId": rec[0],
+            "articleKey": "0x" + rec[1].hex(),
+            "contentHash": "0x" + rec[2].hex(),
+            "verifier": rec[3],
+            "credibilityScore": rec[4],
+            "timestamp": rec[5],
+            "revision": rec[6],
+            "ipfsCid": rec[7],
+            "explorerUrl": f"{_SEPOLIA_EXPLORER_TX}{record_id}",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=f"Record on-chain #{record_id} tidak ditemukan: {exc}")
+
+
+def check_onchain_article_change(article_key: str, content_hash: str) -> Dict[str, Any]:
+    """Verify live content hash against latest on-chain ledger record."""
+    w3, contract, _ = get_contract_bundle()
+    key_bytes = normalize_bytes32(article_key)
+    hash_bytes = normalize_bytes32(content_hash)
+    try:
+        exists, modified, latest_rec_id, latest_hash, rev_count = (
+            contract.functions.checkArticleChange(key_bytes, hash_bytes).call()
+        )
+        return {
+            "exists": bool(exists),
+            "modified": bool(modified),
+            "latestRecordId": int(latest_rec_id),
+            "latestContentHash": "0x" + latest_hash.hex() if latest_hash else None,
+            "revisionCount": int(rev_count),
+        }
+    except Exception as exc:
+        print(f"[Contract] checkArticleChange error: {exc}")
+        return {
+            "exists": False,
+            "modified": False,
+            "latestRecordId": 0,
+            "latestContentHash": None,
+            "revisionCount": 0,
+        }

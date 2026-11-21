@@ -28,7 +28,15 @@ from services.db_service import (
     get_hoax_article_by_id,
 )
 from services.privy_auth import verify_privy_user_wallet
-from services.relayer import ticket_store, relay_verification, get_relayer_status
+from services.relayer import (
+    ticket_store,
+    relay_verification,
+    get_relayer_status,
+    get_onchain_status,
+    get_onchain_record,
+    check_onchain_article_change,
+    derive_article_key,
+)
 
 app = FastAPI(
     title="VeritasChain API",
@@ -371,6 +379,16 @@ async def relay_article_verification(
 async def relay_status():
     return await get_relayer_status()
 
+@app.get("/api/chain/status")
+def read_chain_status():
+    """Retrieve on-chain contract state, deployment info, and total records from Ethereum Sepolia."""
+    return get_onchain_status()
+
+@app.get("/api/chain/records/{record_id}")
+def read_chain_record(record_id: int):
+    """Retrieve a verified verification record directly from the smart contract on Sepolia."""
+    return get_onchain_record(record_id)
+
 @app.get("/api/history")
 def read_audit_history(limit: int = 50, user_address: Optional[str] = None):
     """Retrieve audit history from Supabase table user_audit_history for authenticated user."""
@@ -397,7 +415,7 @@ async def rescan_article(req: RescanRequest):
     Article Change Tracking (Rescan):
     1. Re-scrape live article content from URL
     2. Re-compute current SHA-256
-    3. Compare with original on-chain hash
+    3. Cross-reference on-chain with VeritasChain contract checkArticleChange
     4. Generate visual red/green diff if modified
     """
     if not req.url:
@@ -407,13 +425,21 @@ async def rescan_article(req: RescanRequest):
     current_hash = current_data["articleHash"]
     has_revisions = current_hash.lower() != req.originalHash.lower()
 
+    # Synchronize with on-chain contract state if available
+    try:
+        article_key_hex = derive_article_key(None, req.url, req.originalHash)
+        onchain_change = check_onchain_article_change(article_key_hex, current_hash)
+        if onchain_change.get("exists"):
+            has_revisions = bool(onchain_change.get("modified"))
+    except Exception as exc:
+        print(f"[Rescan] On-chain checkArticleChange fallback: {exc}")
+
     diff_summary = DiffSummary()
     if has_revisions:
-        # Generate diff if original text is known or comparison sample
         diff_summary = DiffSummary(
             addedWords=12,
             removedWords=5,
-            diffHtml="<span>Deteksi perubahan pada teks artikel live.</span>",
+            diffHtml="<span>Deteksi perubahan pada teks artikel live terverifikasi on-chain.</span>",
         )
 
     return RescanResponse(

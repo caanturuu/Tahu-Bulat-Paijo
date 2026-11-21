@@ -97,7 +97,8 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=0.1,
-                    max_output_tokens=500,
+                    max_output_tokens=400,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
 

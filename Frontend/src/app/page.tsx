@@ -162,6 +162,7 @@ export default function Home() {
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
   const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
+  const [hoaxPage, setHoaxPage] = useState(1);
 
   // Live database states from Supabase via FastAPI backend
   const [liveHistory, setLiveHistory] = useState<AuditHistoryItem[]>([]);
@@ -319,9 +320,16 @@ export default function Home() {
 
     const isUsingLive = liveHoaxArticles.length > 0;
     const currentList = isUsingLive ? filteredLiveArticles : filteredPlaceholders;
+    const HOAX_PER_PAGE = 8;
+    const totalItems = currentList.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / HOAX_PER_PAGE));
+    const safePage = Math.min(hoaxPage, totalPages);
+    const startIndex = (safePage - 1) * HOAX_PER_PAGE;
+    const paginatedLiveArticles = filteredLiveArticles.slice(startIndex, startIndex + HOAX_PER_PAGE);
+    const paginatedPlaceholders = filteredPlaceholders.slice(startIndex, startIndex + HOAX_PER_PAGE);
 
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div id="berita-hoaks-section" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
         <div className="mb-8 space-y-4">
           <div>
@@ -337,6 +345,7 @@ export default function Home() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              setHoaxPage(1);
               fetchLiveHoaxArticles(selectedHoaxCategory, hoaxSearchQuery);
             }}
             className="space-y-3 max-w-3xl"
@@ -358,6 +367,7 @@ export default function Home() {
                     type="button"
                     onClick={() => {
                       setHoaxSearchQuery("");
+                      setHoaxPage(1);
                       fetchLiveHoaxArticles(selectedHoaxCategory, "");
                     }}
                     className="mr-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 cursor-pointer"
@@ -388,6 +398,7 @@ export default function Home() {
                   type="button"
                   onClick={() => {
                     setSelectedHoaxCategory(cat);
+                    setHoaxPage(1);
                     fetchLiveHoaxArticles(cat, hoaxSearchQuery);
                   }}
                   className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs cursor-pointer ${selectedHoaxCategory === cat
@@ -415,6 +426,7 @@ export default function Home() {
                 onClick={() => {
                   setHoaxSearchQuery("");
                   setSelectedHoaxCategory("Semua");
+                  setHoaxPage(1);
                   fetchLiveHoaxArticles("Semua", "");
                 }}
                 className="mt-3 text-xs font-semibold text-[#185adb] hover:underline cursor-pointer"
@@ -425,7 +437,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {isUsingLive ? (
-                filteredLiveArticles.map((item) => (
+                paginatedLiveArticles.map((item) => (
                   <Link
                     key={item.id}
                     href={`/berita-hoax/${item.id}`}
@@ -471,7 +483,7 @@ export default function Home() {
                   </Link>
                 ))
               ) : (
-                filteredPlaceholders.map((item) => (
+                paginatedPlaceholders.map((item) => (
                   <div
                     key={item.id}
                     className="group flex flex-col justify-between rounded-lg border border-dashed border-slate-200 bg-white p-3.5 shadow-2xs hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900/80 transition-all duration-200"
@@ -512,37 +524,58 @@ export default function Home() {
           {/* Pagination bar */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg border border-dashed border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
             <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Menampilkan <strong className="text-slate-800 dark:text-zinc-200">1 - {currentList.length}</strong> dari <strong>{isUsingLive ? liveHoaxArticles.length : HOAX_NEWS_PLACEHOLDERS.length}</strong> {isUsingLive ? "berita hoaks terverifikasi" : "slot data kosong"}
+              Menampilkan{" "}
+              <strong className="text-slate-800 dark:text-zinc-200">
+                {totalItems > 0 ? startIndex + 1 : 0} - {Math.min(startIndex + HOAX_PER_PAGE, totalItems)}
+              </strong>{" "}
+              dari <strong>{totalItems}</strong>{" "}
+              {isUsingLive ? "berita hoaks terverifikasi" : "slot data kosong"}
             </span>
             <div className="flex items-center gap-1.5 text-xs">
               <button
                 type="button"
-                disabled
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-400 opacity-60 cursor-not-allowed dark:border-zinc-800"
+                disabled={safePage <= 1}
+                onClick={() => {
+                  setHoaxPage((p) => Math.max(1, p - 1));
+                  document.getElementById("berita-hoaks-section")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`rounded-lg border border-slate-200 px-3 py-1.5 transition-colors dark:border-zinc-800 ${
+                  safePage <= 1
+                    ? "text-slate-400 opacity-60 cursor-not-allowed"
+                    : "text-slate-600 hover:bg-slate-50 dark:text-zinc-300 cursor-pointer"
+                }`}
               >
                 ← Sebelumnya
               </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => {
+                    setHoaxPage(pageNum);
+                    document.getElementById("berita-hoaks-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`rounded-lg px-3 py-1.5 font-bold transition-all cursor-pointer ${
+                    safePage === pageNum
+                      ? "bg-[#185adb] text-white shadow-xs"
+                      : "border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
               <button
                 type="button"
-                className="rounded-lg bg-[#185adb] px-3 py-1.5 font-bold text-white shadow-xs"
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-              >
-                2
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
-              >
-                3
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
+                disabled={safePage >= totalPages}
+                onClick={() => {
+                  setHoaxPage((p) => Math.min(totalPages, p + 1));
+                  document.getElementById("berita-hoaks-section")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`rounded-lg border border-slate-200 px-3 py-1.5 transition-colors dark:border-zinc-800 ${
+                  safePage >= totalPages
+                    ? "text-slate-400 opacity-60 cursor-not-allowed"
+                    : "text-slate-600 hover:bg-slate-50 dark:text-zinc-300 cursor-pointer"
+                }`}
               >
                 Selanjutnya →
               </button>

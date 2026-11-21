@@ -13,18 +13,14 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-ENV/
-build/
+Backend/.venv/
+Backend/env/
+Backend/venv/
+Backend/ENV/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -32,6 +28,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Make sure frontend lib is never ignored
+!Frontend/src/lib/
 
 # Environment variables
 .env

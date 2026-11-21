@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
-import { Navbar } from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VeritasChain - Decentralized News Verification",
+  title: "VeritasChain - Cek Fakta & Verifikasi Berita Terdesentralisasi",
   description:
-    "Platform verifikasi berita terdesentralisasi & pelacakan revisi artikel berbasis AI Gemini dan Blockchain Base Sepolia.",
+    "Verifikasi kebenaran berita dan pelacakan revisi artikel berbasis AI dan Blockchain Base Sepolia.",
 };
 
 export default function RootLayout({
@@ -28,11 +27,10 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 font-sans selection:bg-blue-600 selection:text-white">
+      <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-blue-600 selection:text-white">
         <Web3Provider>
-          <Navbar />
           <div className="flex-1 flex flex-col">{children}</div>
         </Web3Provider>
       </body>

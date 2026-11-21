@@ -515,23 +515,17 @@ export default function Home() {
 
         {/* Right Column: Sidebar */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Card 1: Berita Terpopuler Saat Ini */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-rose-500" strokeWidth={2} />
-              Berita Terpopuler
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-4">
-              Isu dan kabar keliru yang paling banyak diperiksa oleh masyarakat.
-            </p>
+          {/* Card 1: Berita Terpopuler (Hanya tampil jika ada data riil) */}
+          {popularHoaxList.length > 0 && (
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-rose-500" strokeWidth={2} />
+                Berita Terpopuler
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed mb-4">
+                Isu dan kabar keliru yang paling banyak diperiksa oleh masyarakat.
+              </p>
 
-            {popularHoaxList.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400 dark:text-zinc-500 border border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl">
-                <TrendingUp className="h-6 w-6 mx-auto mb-2 opacity-40 text-slate-400" strokeWidth={1.5} />
-                <p className="font-medium text-slate-500 dark:text-zinc-400">Belum ada data berita populer</p>
-                <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">Akan terisi otomatis berdasarkan pembaca terbanyak</p>
-              </div>
-            ) : (
               <div className="space-y-4">
                 {popularHoaxList.map((pop) => (
                   <div
@@ -553,8 +547,8 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Card 2: Kampanye Literasi Informasi Digital (Poster Resmi - Proporsional) */}
           <div className="flex justify-center w-full pt-1">

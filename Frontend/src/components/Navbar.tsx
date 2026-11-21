@@ -9,6 +9,7 @@ import {
   X,
   ShieldCheck,
   ExternalLink,
+  Globe,
 } from "lucide-react";
 import { shortenAddress } from "@/lib/utils";
 
@@ -19,6 +20,8 @@ interface NavbarProps {
   isLoggedIn?: boolean;
   userEmail?: string;
   onLogout?: () => void;
+  currentLang?: "id" | "en";
+  onLanguageChange?: (lang: "id" | "en") => void;
 }
 
 export function Navbar({
@@ -28,10 +31,13 @@ export function Navbar({
   isLoggedIn = false,
   userEmail,
   onLogout,
+  currentLang = "id",
+  onLanguageChange,
 }: NavbarProps) {
   const { authenticated, user, logout: privyLogout } = usePrivy();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [lang, setLang] = useState<"id" | "en">(currentLang);
 
   useEffect(() => {
     setCurrentTab(activeTab);
@@ -42,18 +48,29 @@ export function Navbar({
     document.documentElement.classList.remove("dark");
     document.body.classList.remove("dark");
     localStorage.removeItem("theme");
+
+    const savedLang = localStorage.getItem("app_lang") as "id" | "en";
+    if (savedLang === "id" || savedLang === "en") {
+      setLang(savedLang);
+    }
   }, []);
 
+  const handleLanguageChange = (newLang: "id" | "en") => {
+    setLang(newLang);
+    localStorage.setItem("app_lang", newLang);
+    if (onLanguageChange) onLanguageChange(newLang);
+  };
+
   const navItems = [
-    { id: "cek-fakta", label: "Cek Fakta" },
-    { id: "berita-hoaks", label: "Berita Hoaks" },
-    { id: "riwayat", label: "Riwayat" },
-    { id: "tentang", label: "Tentang" },
+    { id: "cek-fakta", label: lang === "en" ? "Fact Check" : "Cek Fakta", tab: "Cek Fakta" },
+    { id: "berita-hoaks", label: lang === "en" ? "Hoax News" : "Berita Hoaks", tab: "Berita Hoaks" },
+    { id: "riwayat", label: lang === "en" ? "Audit History" : "Riwayat", tab: "Riwayat" },
+    { id: "tentang", label: lang === "en" ? "About" : "Tentang", tab: "Tentang" },
   ];
 
-  const handleNavClick = (label: string) => {
-    setCurrentTab(label);
-    if (onTabChange) onTabChange(label);
+  const handleNavClick = (tabName: string) => {
+    setCurrentTab(tabName);
+    if (onTabChange) onTabChange(tabName);
     setMobileMenuOpen(false);
   };
 
@@ -105,11 +122,11 @@ export function Navbar({
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           {navItems.map((item) => {
-            const isActive = currentTab === item.label;
+            const isActive = currentTab === item.tab;
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.label)}
+                onClick={() => handleNavClick(item.tab)}
                 className={`relative py-5 text-sm font-medium transition-colors ${
                   isActive
                     ? "text-[#185adb] font-semibold dark:text-blue-400"
@@ -127,6 +144,34 @@ export function Navbar({
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language Toggle: Indo & English */}
+          <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold shadow-2xs">
+            <button
+              type="button"
+              onClick={() => handleLanguageChange("id")}
+              className={`rounded-full px-2 sm:px-2.5 py-1 text-[11px] font-bold transition-all ${
+                lang === "id"
+                  ? "bg-white text-[#185adb] shadow-2xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="Bahasa Indonesia"
+            >
+              ID
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLanguageChange("en")}
+              className={`rounded-full px-2 sm:px-2.5 py-1 text-[11px] font-bold transition-all ${
+                lang === "en"
+                  ? "bg-white text-[#185adb] shadow-2xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              title="English"
+            >
+              EN
+            </button>
+          </div>
+
           {/* Masuk / User Status Button */}
           {isUserAuthenticated ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -149,7 +194,7 @@ export function Navbar({
               onClick={onOpenLogin}
               className="rounded-full bg-[#185adb] px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all shrink-0"
             >
-              Masuk
+              {lang === "en" ? "Sign In" : "Masuk"}
             </button>
           )}
 
@@ -174,11 +219,11 @@ export function Navbar({
         <div className="border-b border-slate-200 bg-white px-4 py-4 md:hidden shadow-lg animate-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex flex-col gap-1">
             {navItems.map((item) => {
-              const isActive = currentTab === item.label;
+              const isActive = currentTab === item.tab;
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleNavClick(item.label)}
+                  onClick={() => handleNavClick(item.tab)}
                   className={`flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     isActive
                       ? "bg-blue-50 font-semibold text-[#185adb] dark:bg-blue-950/40 dark:text-blue-400"
@@ -192,6 +237,38 @@ export function Navbar({
                 </button>
               );
             })}
+          </div>
+
+          {/* Mobile Language Toggle Row */}
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 px-2">
+            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <Globe className="h-4 w-4 text-slate-500" strokeWidth={1.75} />
+              Bahasa / Language
+            </span>
+            <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => handleLanguageChange("id")}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
+                  lang === "id"
+                    ? "bg-white text-[#185adb] shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                ID
+              </button>
+              <button
+                type="button"
+                onClick={() => handleLanguageChange("en")}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
+                  lang === "en"
+                    ? "bg-white text-[#185adb] shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                EN
+              </button>
+            </div>
           </div>
 
           <div className="mt-3 border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-400">

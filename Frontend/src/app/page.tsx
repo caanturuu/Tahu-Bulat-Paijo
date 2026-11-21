@@ -91,8 +91,8 @@ const INDONESIA_NEWS_BACKGROUNDS = [
   },
 ];
 
-// 24 Placeholder slots for Hoax News (Dummy data removed)
-const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 24 }, (_, i) => ({
+// 15 Placeholder slots for Hoax News (Dummy data removed)
+const HOAX_NEWS_PLACEHOLDERS = Array.from({ length: 15 }, (_, i) => ({
   id: i + 1,
   tag: "[KATEGORI / HOAKS]",
   title: `[Slot Judul Berita Hoaks Terdeteksi #${i + 1}]`,
@@ -138,27 +138,6 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
   },
 };
 
-
-// Resilient thumbnail component with auto-fallback on load error
-function ArticleThumbnail({ src, title }: { src?: string; title: string }) {
-  const [hasError, setHasError] = useState(false);
-
-  if (!src || hasError) {
-    return <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />;
-  }
-
-  return (
-    <Image
-      src={src}
-      alt={title || "Gambar artikel hoaks"}
-      fill
-      className="object-cover group-hover:scale-105 transition-transform duration-300"
-      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-      unoptimized
-      onError={() => setHasError(true)}
-    />
-  );
-}
 
 export default function Home() {
   const { authenticated, user } = usePrivy();
@@ -341,7 +320,7 @@ export default function Home() {
 
     const isUsingLive = liveHoaxArticles.length > 0;
     const currentList = isUsingLive ? filteredLiveArticles : filteredPlaceholders;
-    const HOAX_PER_PAGE = 12; // 4 columns x 3 rows = 12 cards per page
+    const HOAX_PER_PAGE = 12; // 4 columns x 3 rows (4x3)
     const totalItems = currentList.length;
     const totalPages = Math.max(1, Math.ceil(totalItems / HOAX_PER_PAGE));
     const safePage = Math.min(hoaxPage, totalPages);
@@ -467,7 +446,18 @@ export default function Home() {
                     <div>
                       {/* Thumbnail Image */}
                       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                        <ArticleThumbnail src={item.image_url} title={item.title} />
+                        {item.image_url ? (
+                          <Image
+                            src={item.image_url}
+                            alt={item.title || "Gambar artikel hoaks"}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            unoptimized
+                          />
+                        ) : (
+                          <FileSearch className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+                        )}
                       </div>
 
                       {/* Title & Tag */}

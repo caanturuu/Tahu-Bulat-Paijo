@@ -30,7 +30,7 @@ create table if not exists public.verifications (
     -- Bukti Terdesentralisasi & Blockchain
     ipfs_cid text,                                             -- CID arsip snapshot permanen di IPFS Pinata
     tx_hash text,                                              -- Hash transaksi on-chain di Base Sepolia
-    network text default 'Base Sepolia',                       -- Jaringan blockchain
+    network text default 'Ethereum Sepolia',                       -- Jaringan blockchain
     
     -- Metadata Waktu
     created_at timestamptz not null default now(),

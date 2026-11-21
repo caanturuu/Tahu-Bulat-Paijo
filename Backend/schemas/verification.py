@@ -35,7 +35,7 @@ class VerificationResult(BaseModel):
     claimsReview: List[FactCheckClaim]
     ipfsCid: str
     txHash: Optional[str] = None
-    network: str = "Base Sepolia"
+    network: str = "Ethereum Sepolia"
     timestamp: str
     hasRevisions: Optional[bool] = False
     diffSummary: Optional[DiffSummary] = None

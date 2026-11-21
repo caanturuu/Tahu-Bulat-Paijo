@@ -30,6 +30,9 @@ PRIVY_APP_SECRET = os.getenv("PRIVY_APP_SECRET", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
-# Blockchain
-SEPOLIA_RPC_URL = os.getenv("SEPOLIA_RPC_URL", "https://ethereum-sepolia-rpc.publicnode.com")
-BASE_SEPOLIA_RPC_URL = os.getenv("BASE_SEPOLIA_RPC_URL", "https://sepolia.base.org")
+# Blockchain (Ethereum Sepolia)
+SEPOLIA_RPC_URL = os.getenv("SEPOLIA_RPC_URL", "https://eth-sepolia.g.alchemy.com/v2/alch_k1MrIcFHb8VacBCF2Msms")
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "")
+DEPLOYER_PRIVATE_KEY = os.getenv("DEPLOYER_PRIVATE_KEY", "")
+RELAYER_PRIVATE_KEY = os.getenv("RELAYER_PRIVATE_KEY", "")
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "")

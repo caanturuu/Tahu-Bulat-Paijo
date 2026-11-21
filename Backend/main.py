@@ -36,7 +36,7 @@ def read_root():
         "service": "VeritasChain Backend API",
         "status": "operational",
         "version": "1.0.0",
-        "network": "Base Sepolia",
+        "network": "Ethereum Sepolia",
     }
 
 @app.post("/api/verify", response_model=VerificationResult)
@@ -103,7 +103,7 @@ async def verify_article(req: VerificationRequest):
         claimsReview=fact_check_claims,
         ipfsCid=ipfs_cid,
         txHash=None,
-        network="Base Sepolia",
+        network="Ethereum Sepolia",
         timestamp=now_iso,
         hasRevisions=False,
     )

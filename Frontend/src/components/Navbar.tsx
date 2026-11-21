@@ -5,7 +5,6 @@ import { usePrivy } from "@privy-io/react-auth";
 import {
   Moon,
   Sun,
-  Settings,
   Wallet,
   LogOut,
   Menu,
@@ -19,7 +18,6 @@ interface NavbarProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
   onOpenLogin?: () => void;
-  onOpenSettings?: () => void;
   isLoggedIn?: boolean;
   userEmail?: string;
   onLogout?: () => void;
@@ -29,7 +27,6 @@ export function Navbar({
   activeTab = "Cek Fakta",
   onTabChange,
   onOpenLogin,
-  onOpenSettings,
   isLoggedIn = false,
   userEmail,
   onLogout,
@@ -157,7 +154,7 @@ export function Navbar({
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Dark / Light Mode Switch Button */}
+          {/* Light / Dark Mode Toggle Button (Samping kiri Masuk) */}
           <button
             type="button"
             onClick={toggleTheme}
@@ -175,16 +172,6 @@ export function Navbar({
                 <span className="hidden sm:inline text-[11px] font-semibold text-slate-600">Dark</span>
               </>
             )}
-          </button>
-
-          {/* Settings */}
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            title="Pengaturan Jaringan & API"
-          >
-            <Settings className="h-4 w-4" strokeWidth={1.75} />
           </button>
 
           {/* Masuk / User Status Button */}

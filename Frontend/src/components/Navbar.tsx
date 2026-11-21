@@ -264,15 +264,15 @@ export function Navbar({
           <div className="mt-3 border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-[#185adb]" />
-              Base Sepolia Testnet
+              Ethereum Sepolia Testnet
             </span>
             <a
-              href="https://sepolia.basescan.org"
+              href="https://sepolia.etherscan.io"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
             >
-              BaseScan <ExternalLink className="h-3 w-3" />
+              Etherscan <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </div>

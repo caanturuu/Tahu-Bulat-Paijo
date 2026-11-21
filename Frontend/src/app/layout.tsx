@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VeritasChain - Cek Fakta & Verifikasi Berita Terdesentralisasi",
   description:
-    "Verifikasi kebenaran berita dan pelacakan revisi artikel berbasis AI dan Blockchain Base Sepolia.",
+    "Verifikasi kebenaran berita dan pelacakan revisi artikel berbasis AI dan Blockchain Ethereum Sepolia.",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },

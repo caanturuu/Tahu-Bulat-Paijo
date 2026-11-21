@@ -190,7 +190,7 @@ export function FeatureDetailModal({
               </div>
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60">
-                  <Cpu className="h-3 w-3 text-emerald-600" /> Base Sepolia L2 Rollup
+                  <Cpu className="h-3 w-3 text-emerald-600" /> Ethereum Sepolia Testnet
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
                   Audit On-Chain Permanen
@@ -199,7 +199,7 @@ export function FeatureDetailModal({
             </div>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed mb-6">
-              Setiap kali berita diverifikasi, hasil audit dan sidik jari digital (SHA-256) dicetak langsung ke jaringan blockchain <strong>Base Sepolia Layer-2</strong> dan metadata disimpan abadi di <strong>IPFS</strong>. Tidak ada pihak manapun yang dapat menghapus bukti kebenaran yang sudah tercatat.
+              Setiap kali berita diverifikasi, hasil audit dan sidik jari digital (SHA-256) dicetak langsung ke jaringan blockchain <strong>Ethereum Sepolia</strong> dan metadata disimpan abadi di <strong>IPFS</strong>. Tidak ada pihak manapun yang dapat menghapus bukti kebenaran yang sudah tercatat.
             </p>
 
             {/* Technical Pillars */}
@@ -242,7 +242,7 @@ export function FeatureDetailModal({
                   <Cpu className="h-3.5 w-3.5" /> VeritasAudit Smart Contract
                 </span>
                 <span className="text-[10px] bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-200 px-2 py-0.5 rounded-full font-semibold">
-                  Verified On BaseScan
+                  Verified On Etherscan
                 </span>
               </div>
               <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60">
@@ -262,13 +262,13 @@ export function FeatureDetailModal({
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800">
               <a
-                href="https://sepolia.basescan.org"
+                href="https://sepolia.etherscan.io"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto flex-1 rounded-xl bg-emerald-600 py-2.5 px-4 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Buka BaseScan Sepolia Explorer
+                Buka Sepolia Etherscan Explorer
               </a>
               <button
                 type="button"

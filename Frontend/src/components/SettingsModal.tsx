@@ -70,8 +70,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               onChange={(e) => setNetwork(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
             >
-              <option value="base-sepolia">Base Sepolia (L2 - Super Cepat & Gasless)</option>
-              <option value="ethereum-sepolia">Ethereum Sepolia (L1 Testnet)</option>
+              <option value="ethereum-sepolia">Ethereum Sepolia (Alchemy RPC)</option>
+              <option value="sepolia-public">Ethereum Sepolia (Public RPC)</option>
             </select>
           </div>
 

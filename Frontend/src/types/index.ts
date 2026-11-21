@@ -15,6 +15,9 @@ export interface VerificationResult {
   articleHash: string;
   credibilityScore: number; // 0 - 100
   status: "VALID" | "QUESTIONABLE" | "HOAX";
+  narasi?: string;          // Narasi / klaim isu yang beredar
+  penjelasan?: string;      // Penjelasan detail fakta / bantahan
+  kesimpulan?: string;      // Kesimpulan akhir
   summary: string;
   keyFindings: string[];
   claimsReview: FactCheckClaim[];

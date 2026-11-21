@@ -152,7 +152,7 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
   ],
   ipfsCid: "QmPlaceholderDiffViewerDemoCID",
   txHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-  network: "Base Sepolia (Layer-2)",
+  network: "Ethereum Sepolia",
   timestamp: "2026-11-21T08:00:00Z",
   hasRevisions: true,
   diffSummary: {
@@ -727,19 +727,19 @@ export default function Home() {
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <History className="h-6 w-6 text-[#185adb] dark:text-blue-400" strokeWidth={1.75} />
-                Riwayat Audit On-Chain (Base Sepolia)
+                Riwayat Audit On-Chain (Ethereum Sepolia)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
                 Catatan bukti verifikasi berita yang tersimpan abadi di ledger blockchain.
               </p>
             </div>
             <a
-              href="https://sepolia.basescan.org"
+              href="https://sepolia.etherscan.io"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-blue-600 font-semibold dark:text-blue-400 hover:underline"
             >
-              Buka BaseScan Explorer <ExternalLink className="h-3.5 w-3.5" />
+              Buka Sepolia Etherscan <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
 
@@ -822,9 +822,9 @@ export default function Home() {
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <Layers className="h-6 w-6 text-[#185adb] mb-2" />
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Base Sepolia L2</h4>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Ethereum Sepolia</h4>
                 <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                  Finalitas transaksi 1-2 detik dan biaya gas bebas (*gasless relayer*) menggunakan standar EIP-712.
+                  Pencatatan bukti on-chain transparan dan bebas gas (*gasless relayer*) menggunakan standar EIP-712.
                 </p>
               </div>
 

@@ -10,13 +10,23 @@ def verify_article_with_gemini(
     fact_check_claims: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """
-    Perform semantic reasoning and credibility scoring using Gemini 2.0 Flash.
-    Returns credibilityScore, status, summary, and keyFindings.
+    Perform semantic reasoning and credibility scoring using Gemini Flash.
+    Returns:
+    - narasi: Narasi atau klaim isu yang beredar
+    - penjelasan: Penjelasan detail fakta / bantahan
+    - kesimpulan: Kesimpulan akhir
+    - credibilityScore: 0 - 100
+    - status: "VALID" | "QUESTIONABLE" | "HOAX"
+    - summary: Ringkasan umum
+    - keyFindings: 3 poin temuan utama
     """
     if not GEMINI_API_KEY:
         return {
             "credibilityScore": 75,
             "status": "VALID",
+            "narasi": f"Klaim atau berita mengenai: {title}",
+            "penjelasan": "Teks artikel telah diarsipkan dan dihitung integritas kriptografisnya. Kunci API Gemini belum disetel pada file .env.",
+            "kesimpulan": "Perlu verifikasi lebih lanjut menggunakan API Key Gemini aktif.",
             "summary": "Kunci API Gemini belum dikonfigurasi. Menampilkan hasil verifikasi standar sistem.",
             "keyFindings": [
                 "API Key Gemini belum disetel pada .env",
@@ -28,25 +38,28 @@ def verify_article_with_gemini(
     client = genai.Client(api_key=GEMINI_API_KEY)
 
     prompt = f"""
-Anda adalah mesin verifikasi berita cerdas tingkat tinggi bernama VeritasChain.
-Tugas Anda: Analisis kredibilitas artikel berita berikut berdasarkan penalaran semantik, fakta logika, dan referensi cek fakta resmi jika tersedia.
+Anda adalah mesin verifikasi berita dan pemeriksa fakta resmi tingkat tinggi bernama VeritasChain.
+Tugas Anda: Menganalisis isu atau berita berikut secara mendalam, objektif, dan faktual mengikuti struktur standar pemeriksa fakta (MAFINDO / TurnBackHoax).
 
-[JUDUL ARTIKEL]
+[JUDUL ARTIKEL / KLAIM]
 {title}
 
-[TEKS ARTIKEL]
+[TEKS ARTIKEL LENGKAP]
 {article_text[:3500]}
 
-[REFERENSI CLAIMREVIEW / CEK FAKTA RESMI]
-{json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di database."}
+[REFERENSI BASIS DATA CEK FAKTA RESMI (CLAIMREVIEW)]
+{json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di basis data."}
 
 Instruksi Output:
-Kembalikan JSON murni dengan format persis berikut:
+Kembalikan JSON murni dengan struktur persis berikut:
 {{
-  "credibilityScore": (integer antara 0 sampai 100, 0 = mutlak hoaks, 100 = sangat valid dan kredibel),
+  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat terkait isu ini, biasanya diawali seperti "Beredar informasi/klaim bahwa..."),
+  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya, membantah disinformasi atau menjelaskan konteks validitas artikel ini secara runtut dan lengkap),
+  "kesimpulan": (string: kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini, beserta kategori hoaks/faktanya),
+  "credibilityScore": (integer antara 0 sampai 100, di mana 0 = mutlak hoaks/palsu, 100 = fakta valid dan terverifikasi resmi),
   "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika skor 40-69, "HOAX" jika skor < 40),
-  "summary": (string: penjelasan ringkas 2-3 kalimat mengenai analisis kredibilitas berita ini),
-  "keyFindings": (array of string: persis 3 poin temuan utama yang objektif dan berbasis fakta)
+  "summary": (string: ringkasan 2-3 kalimat mengenai hasil analisis),
+  "keyFindings": (array of string: persis 3 poin temuan utama yang berbasis fakta dan data)
 }}
 """
 
@@ -63,27 +76,41 @@ Kembalikan JSON murni dengan format persis berikut:
             )
 
             result = json.loads(response.text)
+            score = int(result.get("credibilityScore", 80))
+            status = result.get("status", "VALID" if score >= 70 else "QUESTIONABLE" if score >= 40 else "HOAX")
+            narasi = result.get("narasi", f"Klaim terkait: {title}")
+            penjelasan = result.get("penjelasan", result.get("summary", "Penjelasan fakta hasil verifikasi."))
+            kesimpulan = result.get("kesimpulan", f"Berdasarkan verifikasi, informasi ini berstatus {status}.")
+            summary = result.get("summary", kesimpulan)
+            key_findings = result.get("keyFindings", [
+                "Pemeriksaan teks konsisten dengan fakta umum.",
+                "Tidak ada manipulasi klaim ekstrem terdeteksi.",
+                "Struktur narasumber kredibel.",
+            ])
+
             return {
-                "credibilityScore": int(result.get("credibilityScore", 80)),
-                "status": result.get("status", "VALID"),
-                "summary": result.get("summary", "Analisis berita selesai diproses oleh VeritasChain."),
-                "keyFindings": result.get("keyFindings", [
-                    "Analisis teks konsisten dengan fakta umum.",
-                    "Tidak ada manipulasi klaim ekstrem terdeteksi.",
-                    "Struktur narasumber kredibel.",
-                ]),
+                "narasi": narasi,
+                "penjelasan": penjelasan,
+                "kesimpulan": kesimpulan,
+                "credibilityScore": score,
+                "status": status,
+                "summary": summary,
+                "keyFindings": key_findings,
             }
         except Exception as e:
             print(f"[GeminiVerifier] Error trying model {model_name}: {e}")
             continue
 
     return {
+        "narasi": f"Klaim atau berita mengenai: {title}",
+        "penjelasan": "Penalaran AI menghadapi pembatasan server sementara. Teks artikel berhasil diarsipkan dan dihitung hash SHA-256.",
+        "kesimpulan": "Status verifikasi sementara: MERAGUKAN (Perlu verifikasi manual lanjutan).",
         "credibilityScore": 70,
         "status": "QUESTIONABLE",
         "summary": "Penalaran AI menghadapi pembatasan server sementara. Menampilkan evaluasi heuristik.",
         "keyFindings": [
             "Layanan AI mengalami beban puncak sementara.",
-            "Teks berita berhasil diarsipkan.",
+            "Teks berita berhasil diarsipkan ke IPFS.",
             "Hash kriptografi valid.",
         ],
     }

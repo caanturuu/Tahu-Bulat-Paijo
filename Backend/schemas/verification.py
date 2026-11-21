@@ -30,6 +30,9 @@ class VerificationResult(BaseModel):
     articleHash: str
     credibilityScore: int = Field(ge=0, le=100)
     status: str  # "VALID" | "QUESTIONABLE" | "HOAX"
+    narasi: Optional[str] = None
+    penjelasan: Optional[str] = None
+    kesimpulan: Optional[str] = None
     summary: str
     keyFindings: List[str]
     claimsReview: List[FactCheckClaim]

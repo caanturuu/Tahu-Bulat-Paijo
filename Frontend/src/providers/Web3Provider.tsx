@@ -25,7 +25,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       appId={privyAppId}
       config={{
         appearance: {
-          theme: "dark",
+          theme: "light",
           accentColor: "#2563eb",
           logo: "/globe.svg",
         },

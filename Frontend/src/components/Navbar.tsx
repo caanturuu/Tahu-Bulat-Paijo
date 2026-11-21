@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import {
-  Moon,
-  Sun,
   Wallet,
   LogOut,
   Menu,
@@ -34,42 +32,17 @@ export function Navbar({
   const { authenticated, user, logout: privyLogout } = usePrivy();
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     setCurrentTab(activeTab);
   }, [activeTab]);
 
   useEffect(() => {
-    // Check initial dark mode from localStorage or system preference
-    const savedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const shouldBeDark = savedTheme === "dark" || (!savedTheme && systemPrefersDark);
-
-    if (shouldBeDark) {
-      document.documentElement.classList.add("dark");
-      document.body.classList.add("dark");
-      setIsDarkMode(true);
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.body.classList.remove("dark");
-      setIsDarkMode(false);
-    }
+    // Lock application theme permanently to light mode
+    document.documentElement.classList.remove("dark");
+    document.body.classList.remove("dark");
+    localStorage.setItem("theme", "light");
   }, []);
-
-  const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove("dark");
-      document.body.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      document.body.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
-    }
-  };
 
   const navItems = [
     { id: "cek-fakta", label: "Cek Fakta" },
@@ -154,26 +127,6 @@ export function Navbar({
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Light / Dark Mode Toggle Button (Samping kiri Masuk) */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 shadow-2xs"
-            title={isDarkMode ? "Beralih ke Mode Terang (Light Mode)" : "Beralih ke Mode Gelap (Dark Mode)"}
-          >
-            {isDarkMode ? (
-              <>
-                <Sun className="h-4 w-4 text-amber-400" strokeWidth={1.75} />
-                <span className="hidden sm:inline text-[11px] font-semibold text-amber-300">Light</span>
-              </>
-            ) : (
-              <>
-                <Moon className="h-4 w-4 text-slate-600" strokeWidth={1.75} />
-                <span className="hidden sm:inline text-[11px] font-semibold text-slate-600">Dark</span>
-              </>
-            )}
-          </button>
-
           {/* Masuk / User Status Button */}
           {isUserAuthenticated ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -239,26 +192,6 @@ export function Navbar({
                 </button>
               );
             })}
-          </div>
-
-          {/* Mobile Dark/Light Mode Row */}
-          <div className="mt-3 flex items-center justify-between border-t border-slate-100 dark:border-zinc-800 pt-3 px-2">
-            <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
-              {isDarkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
-              Mode {isDarkMode ? "Gelap (Dark)" : "Terang (Light)"}
-            </span>
-            <button
-              onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isDarkMode ? "bg-[#185adb]" : "bg-slate-300"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isDarkMode ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
           </div>
 
           <div className="mt-3 border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-400">

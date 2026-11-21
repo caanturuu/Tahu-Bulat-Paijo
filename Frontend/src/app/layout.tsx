@@ -36,6 +36,13 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.classList.remove('dark');document.body?.classList.remove('dark');try{localStorage.removeItem('theme');}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-blue-600 selection:text-white">
         <Web3Provider>
           <div className="flex-1 flex flex-col">{children}</div>

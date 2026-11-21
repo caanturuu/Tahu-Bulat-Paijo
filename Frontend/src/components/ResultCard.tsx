@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ExternalLink, Database } from "lucide-react";
+import { ExternalLink, Database, AlertTriangle, CheckCircle2, Info, Sparkles } from "lucide-react";
 import { VerificationResult } from "@/types";
 import { formatDate, getScoreStatusText } from "@/lib/utils";
 import { ProofBadge } from "./ProofBadge";
@@ -108,6 +108,10 @@ export function ResultCard({ data }: ResultCardProps) {
                 <span className="text-slate-400 font-bold text-sm leading-none mt-0.5 shrink-0">•</span>
                 <span>Deteksi anomali audio kecerdasan buatan (deepfake) dan tangkapan layar editan.</span>
               </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#185adb] font-bold text-sm leading-none mt-0.5 shrink-0">•</span>
+                <span className="text-slate-500 dark:text-zinc-400">Validasi klasifikasi konten: Memverifikasi otomatis apakah input berupa artikel/klaim berita faktual vs kueri non-berita.</span>
+              </li>
             </ul>
           </div>
         </div>
@@ -176,9 +180,167 @@ export function ResultCard({ data }: ResultCardProps) {
     );
   }
 
-  // Normal populated state when real data is available
-  const scoreInfo = getScoreStatusText(data.credibilityScore);
+  // Check whether content was validated as news or non-news
+  const isNews = data.isNews !== false && data.status !== "NON_NEWS";
+  const scoreInfo = getScoreStatusText(data.credibilityScore, isNews);
 
+  // KONDISI A: BUKAN KONTEN BERITA (Non-News Content)
+  if (!isNews) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300">
+        {/* Top Section: Badges, Title, Warning + Right Score Card */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+          {/* Left Content */}
+          <div className="flex-1 space-y-2">
+            {/* Top Badges Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-rose-300 bg-rose-50 px-2.5 py-1 text-[11px] font-extrabold text-[#dc2626] uppercase tracking-wider dark:border-rose-900/60 dark:bg-rose-950/50 dark:text-rose-300 shadow-2xs">
+                <AlertTriangle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                ✕ VALIDASI: BUKAN BERITA
+              </span>
+              <span className="rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600 uppercase tracking-wider dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                TIDAK DAPAT DIUJI
+              </span>
+              <span className="text-slate-300 dark:text-zinc-700">|</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                {data.nonNewsDetails?.queryType || "Percakapan / Teks Bebas"}
+              </span>
+            </div>
+
+            {/* Main Headline */}
+            <h3 className="text-xl sm:text-2xl lg:text-[26px] font-bold tracking-tight text-slate-900 dark:text-white leading-snug pt-1">
+              "{data.title}"
+            </h3>
+
+            {/* Subtext Warning */}
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium pt-0.5 leading-relaxed">
+              Teks ini tidak teridentifikasi sebagai artikel berita, pernyataan kebijakan publik, atau rilis instansi resmi yang dapat diuji kebenarannya.
+            </p>
+          </div>
+
+          {/* Right Floating Card: Skor Kredibilitas (Non-News State) */}
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 sm:p-5 w-full sm:w-44 shrink-0 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/60 text-center">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+              Skor Kredibilitas
+            </span>
+
+            <div className="my-1.5 flex items-baseline justify-center">
+              <span className="text-4xl sm:text-[42px] font-extrabold tracking-tight text-slate-400 dark:text-zinc-500">
+                N/A
+              </span>
+            </div>
+
+            {/* Empty Progress Bar */}
+            <div className="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden dark:bg-zinc-800">
+              <div className="h-full rounded-full bg-transparent w-0" />
+            </div>
+
+            <div className="mt-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+              BUKAN BERITA
+            </div>
+
+            <div className="mt-3.5 pt-3 border-t border-slate-200/60 dark:border-zinc-800/80 w-full text-center">
+              <div className="text-[10px] text-slate-400 dark:text-zinc-500">
+                Status Pengujian:
+              </div>
+              <div className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mt-0.5">
+                Dilewati
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Card: Analisis & Fakta Terkait (Non-News State with Amber Accent) */}
+        <div className="relative overflow-hidden rounded-2xl border border-amber-200/80 bg-white p-5 sm:p-7 shadow-xs pl-6 sm:pl-8 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="absolute left-0 inset-y-0 w-1.5 bg-amber-500" />
+
+          {/* Classification Header Banner */}
+          <div className="flex items-center gap-2 mb-2 text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+            <Info className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+            <span>Hasil Klasifikasi Konten: Non-Berita</span>
+          </div>
+
+          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            Analisis & Alasan Penolakan Pengujian
+          </h4>
+          <p className="mt-2.5 text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed">
+            {data.summary}
+          </p>
+
+          {data.keyFindings && data.keyFindings.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-zinc-800/80 space-y-2.5">
+              <h5 className="text-xs font-bold text-slate-900 dark:text-white">
+                Rincian Evaluasi Sistem:
+              </h5>
+              <ul className="space-y-2 text-xs text-slate-600 dark:text-zinc-300">
+                {data.keyFindings.map((point, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="text-amber-500 font-bold text-sm leading-none mt-0.5 shrink-0">•</span>
+                    <span className="leading-relaxed">{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Simulation Guidance Box */}
+          <div className="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60 space-y-2 text-xs">
+            <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-zinc-200">
+              <Sparkles className="h-3.5 w-3.5 text-[#185adb]" strokeWidth={2} />
+              <span>Panduan Pengujian Simulasi VeritasChain:</span>
+            </div>
+            <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">
+              Konsensus blockchain dan pengujian cek fakta hanya dapat diaplikasikan pada <strong>artikel berita</strong>, <strong>isu kebijakan publik</strong>, atau <strong>klaim narasi faktual</strong>.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-[11px]">
+              <div className="rounded-lg bg-white p-3 border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+                <div className="font-bold text-rose-600 dark:text-rose-400">Contoh Uji Berita Hoaks:</div>
+                <div className="text-slate-600 dark:text-zinc-300 mt-1 font-mono text-[10.5px]">
+                  "Pemerintah bagikan saldo bansos gratis lewat link telegram"
+                </div>
+              </div>
+              <div className="rounded-lg bg-white p-3 border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+                <div className="font-bold text-emerald-600 dark:text-emerald-400">Contoh Uji Berita Valid:</div>
+                <div className="text-slate-600 dark:text-zinc-300 mt-1 font-mono text-[10.5px]">
+                  "Siaran pers resmi Kemenkeu terkait APBN 2026"
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Section: Sumber Verifikasi & Cek Fakta (Non-News State) */}
+        <div className="space-y-3 pt-2">
+          <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            Sumber Verifikasi & Cek Fakta
+          </h4>
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-5 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+              Pencarian basis data pemeriksa fakta IFCN (MAFINDO, Kompas Cek Fakta, Tempo) dilewati secara otomatis karena input kueri bukan merupakan narasi klaim atau berita jurnalistik.
+            </p>
+          </div>
+        </div>
+
+        {/* On-Chain & IPFS Proof (Non-News State) */}
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5 backdrop-blur-xs dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="mb-2 flex items-center justify-between">
+            <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 dark:text-zinc-400 uppercase">
+              <Database className="h-4 w-4 text-slate-400 dark:text-zinc-500" strokeWidth={1.75} />
+              Bukti Kriptografis & On-Chain (Base L2)
+            </h4>
+            <span className="text-[11px] text-slate-400 dark:text-zinc-500 font-mono">
+              Status: Dilewati (Non-Berita)
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+            Pencatatan konsensus desentralisasi pada Base Sepolia dan Pinata IPFS hanya diterbitkan untuk konten berita yang berhasil melalui uji verifikasi integritas.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // KONDISI B: KONTEN BERITA (Lolos Validasi Berita)
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Section: Badges, Title, Link + Right Score Card */}
@@ -187,6 +349,13 @@ export function ResultCard({ data }: ResultCardProps) {
         <div className="flex-1 space-y-2">
           {/* Top Badges Row */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* News Validation Badge */}
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-extrabold text-[#185adb] uppercase tracking-wider dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300 shadow-2xs">
+              <CheckCircle2 className="h-3 w-3 shrink-0" strokeWidth={2} />
+              ✓ VALIDASI: KONTEN BERITA
+            </span>
+
+            {/* Fact Check Status Badge */}
             {data.credibilityScore < 50 ? (
               <>
                 <span className="rounded-md bg-[#dc2626] px-2.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-2xs">
@@ -292,6 +461,12 @@ export function ResultCard({ data }: ResultCardProps) {
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-sm pl-6 sm:pl-8 dark:border-zinc-800 dark:bg-zinc-900">
         {/* Blue Left Accent Bar */}
         <div className="absolute left-0 inset-y-0 w-1.5 bg-[#185adb]" />
+
+        {/* Validation Status Indicator */}
+        <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-[#185adb] dark:text-blue-400">
+          <span className="inline-block w-2 h-2 rounded-full bg-[#185adb] dark:bg-blue-400 animate-pulse" />
+          <span>Status Validasi: Tervalidasi sebagai Konten Berita & Isu Publik</span>
+        </div>
 
         <h4 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
           Analisis & Fakta Terkait

@@ -7,6 +7,7 @@ import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult } from "@/types";
+import { simulateNewsValidation } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -234,28 +235,36 @@ export default function Home() {
     setServerNotice(null);
 
     try {
-      // Connect to real FastAPI backend if running
+      // Connect to real FastAPI backend if running (timeout 1.5s)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
       const res = await fetch("http://localhost:8000/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: query.trim() }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const liveData = await res.json();
         setResult(liveData);
       } else {
-        // Backend returned non-200, keep card empty (no dummy data)
-        setResult(null);
+        // Backend returned non-200, run simulated news validation
+        const simulated = simulateNewsValidation(query.trim());
+        setResult(simulated);
         setServerNotice(
-          `Kueri diterima: "${query.trim()}". Backend merespons status ${res.status}. Data dummy telah dinonaktifkan, card tetap dalam kondisi kosong.`
+          `[Mode Simulasi Aktif] Backend merespons status ${res.status}. Menampilkan simulasi validasi berita untuk: "${query.trim()}".`
         );
       }
     } catch {
-      // Backend offline / not running: keep card empty (no dummy data)
-      setResult(null);
+      // Backend offline / not running: run simulated news validation with realistic delay
+      await new Promise((resolve) => setTimeout(resolve, 650));
+      const simulated = simulateNewsValidation(query.trim());
+      setResult(simulated);
       setServerNotice(
-        `Kueri diterima: "${query.trim()}". Server backend FastAPI (http://localhost:8000) belum aktif. Card tetap ditampilkan dalam kondisi kosong tanpa data dummy.`
+        `[Mode Simulasi Aktif] Menampilkan hasil simulasi deteksi konten & validasi fakta untuk: "${query.trim()}".`
       );
     } finally {
       setIsLoading(false);

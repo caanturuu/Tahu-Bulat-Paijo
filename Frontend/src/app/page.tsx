@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePrivy, useWallets, useCreateWallet } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult, HoaxArticleItem, AuditHistoryItem } from "@/types";
-import { formatDate, shortenHash, resolveWalletAddress } from "@/lib/utils";
+import { formatDate, shortenHash } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -140,11 +140,7 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
 
 
 export default function Home() {
-  const { ready, authenticated, user } = usePrivy();
-  const { wallets } = useWallets();
-  const { createWallet } = useCreateWallet();
-  const walletRequestedRef = useRef(false);
-
+  const { authenticated, user } = usePrivy();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -157,24 +153,11 @@ export default function Home() {
   // Modals state
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [selectedFeatureModal, setSelectedFeatureModal] = useState<"konsorsium" | "blockchain" | "diff" | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
-  const isUserAuthenticated = authenticated;
-  const walletAddress = resolveWalletAddress(user, wallets);
-  const userEmailDisplay = user?.google?.email || user?.email?.address || "";
-  const currentUserAddress = walletAddress || userEmailDisplay;
-
-  useEffect(() => {
-    if (!authenticated) {
-      walletRequestedRef.current = false;
-      return;
-    }
-    if (!ready || walletAddress || walletRequestedRef.current) return;
-    const timer = setTimeout(() => {
-      walletRequestedRef.current = true;
-      createWallet().catch(() => {});
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [ready, authenticated, walletAddress, createWallet]);
+  const isUserAuthenticated = authenticated || isLoggedIn;
+  const currentUserAddress = user?.wallet?.address || (userEmail ? userEmail : "");
 
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
@@ -252,7 +235,8 @@ export default function Home() {
 
     try {
       const addressToSend =
-        currentUserAddress || "0x0000000000000000000000000000000000000000";
+        user?.wallet?.address ||
+        (userEmail ? userEmail : "0x0000000000000000000000000000000000000000");
 
       // Connect to real FastAPI backend if running
       const res = await fetch("http://localhost:8000/api/verify", {
@@ -406,11 +390,10 @@ export default function Home() {
                     setSelectedHoaxCategory(cat);
                     fetchLiveHoaxArticles(cat, hoaxSearchQuery);
                   }}
-                  className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs cursor-pointer ${
-                    selectedHoaxCategory === cat
-                      ? "bg-[#185adb] text-white shadow-2xs"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-                  }`}
+                  className={`rounded-lg px-3 py-1 font-medium transition-colors shrink-0 text-xs cursor-pointer ${selectedHoaxCategory === cat
+                    ? "bg-[#185adb] text-white shadow-2xs"
+                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                    }`}
                 >
                   {cat}
                 </button>
@@ -586,8 +569,11 @@ export default function Home() {
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab)}
         onOpenLogin={() => setIsLoginOpen(true)}
+        isLoggedIn={isLoggedIn}
+        userEmail={userEmail}
         onLogout={() => {
-          setLiveHistory([]);
+          setIsLoggedIn(false);
+          setUserEmail("");
         }}
       />
 
@@ -595,6 +581,10 @@ export default function Home() {
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
+        onSuccess={() => {
+          setIsLoggedIn(true);
+          setUserEmail("validator@veritaschain.id");
+        }}
       />
 
       {/* Feature Deep Dive Interactive Modal */}
@@ -809,7 +799,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                    Akun: {userEmailDisplay || shortenHash(currentUserAddress, 8)}
+                    Akun: {shortenHash(currentUserAddress, 8)}
                   </span>
                   <span>•</span>
                   <span>

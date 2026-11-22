@@ -323,7 +323,7 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
         _VERIFY_CACHE[norm_query] = not_news_res
         return not_news_res
 
-    # 4. Instant deterministic IPFS CID & Background Pinning
+    # 4. Pin Snapshot to Pinata IPFS (await real IpfsHash so gateway link matches; fallback to local CIDv1 if unavailable)
     ipfs_payload = {
         "title": title,
         "url": url,
@@ -339,7 +339,12 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
         "claimsReview": fact_check_claims,
         "timestamp": now_iso,
     }
-    ipfs_cid = compute_deterministic_cid(ipfs_payload)
+    pinned_cid = await pin_json_to_ipfs(ipfs_payload, f"VeritasChain-{article_hash[:12]}")
+    ipfs_cid = (
+        pinned_cid.strip()
+        if isinstance(pinned_cid, str) and pinned_cid.strip()
+        else compute_deterministic_cid(ipfs_payload)
+    )
 
     # Issue short-lived ticket so /api/relay only sponsors results produced by /api/verify.
     verify_ticket = ticket_store.issue(
@@ -370,7 +375,6 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
         "ipfs_cid": ipfs_cid,
         "network": "Ethereum Sepolia",
     })
-    background_tasks.add_task(pin_json_to_ipfs, ipfs_payload, f"VeritasChain-{article_hash[:12]}")
 
     # 5. Build Unified Result
     final_res = VerificationResult(

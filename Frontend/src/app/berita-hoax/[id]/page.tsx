@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ShieldAlert, Loader2 } from "lucide-react";
 import { ResultCard } from "@/components/ResultCard";
-import { VerificationResult } from "@/types";
+import { VerificationResult, HoaxArticleItem } from "@/types";
+import DEFAULT_HOAX_ARTICLES from "@/data/hoaxArticles.json";
 
 function HoaxDetailContent() {
   const params = useParams();
@@ -47,8 +48,37 @@ function HoaxDetailContent() {
         };
         setArticle(mapped);
       })
-      .catch((err) => {
-        setError(err.message || "Gagal memuat artikel hoaks.");
+      .catch(() => {
+        // Fallback to embedded hoax catalog if backend is not running
+        const fallback = (DEFAULT_HOAX_ARTICLES as HoaxArticleItem[]).find(
+          (a) => String(a.id) === String(id) || a.title === id
+        );
+        if (fallback) {
+          const mapped: VerificationResult = {
+            url: fallback.source_url || "",
+            title: fallback.title,
+            publisher: fallback.category ? `Kategori: ${fallback.category}` : "Katalog Berita Hoaks",
+            publishedDate: fallback.published_date || fallback.created_at || "",
+            articleHash: fallback.article_hash || "0x0000000000000000000000000000000000000000",
+            credibilityScore: fallback.credibility_score ?? 0,
+            status: (fallback.status as "VALID" | "QUESTIONABLE" | "HOAX" | "NOT_NEWS") || "HOAX",
+            isNews: true,
+            narasi: fallback.narasi || "",
+            penjelasan: fallback.penjelasan || "",
+            kesimpulan: fallback.kesimpulan || "",
+            summary: fallback.penjelasan || fallback.title,
+            keyFindings: fallback.key_findings || [],
+            claimsReview: fallback.claims_review || [],
+            ipfsCid: fallback.ipfs_cid || "QmSnapshotUnavailable",
+            txHash: fallback.tx_hash,
+            network: "Ethereum Sepolia",
+            timestamp: fallback.created_at || new Date().toISOString(),
+          };
+          setArticle(mapped);
+          setError(null);
+        } else {
+          setError("Gagal memuat artikel hoaks.");
+        }
       })
       .finally(() => {
         setIsLoading(false);

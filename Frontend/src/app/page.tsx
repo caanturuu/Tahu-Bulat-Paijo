@@ -10,6 +10,7 @@ import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult, HoaxArticleItem, AuditHistoryItem } from "@/types";
 import { formatDate, shortenHash, resolveWalletAddress } from "@/lib/utils";
+import DEFAULT_HOAX_ARTICLES from "@/data/hoaxArticles.json";
 import {
   Search,
   Plus,
@@ -184,9 +185,11 @@ export default function Home() {
   const [selectedHoaxCategory, setSelectedHoaxCategory] = useState("Semua");
   const [hoaxPage, setHoaxPage] = useState(1);
 
-  // Live database states from Supabase via FastAPI backend
+  // Live database states from Supabase via FastAPI backend (defaults to curated verified articles)
   const [liveHistory, setLiveHistory] = useState<AuditHistoryItem[]>([]);
-  const [liveHoaxArticles, setLiveHoaxArticles] = useState<HoaxArticleItem[]>([]);
+  const [liveHoaxArticles, setLiveHoaxArticles] = useState<HoaxArticleItem[]>(
+    DEFAULT_HOAX_ARTICLES as HoaxArticleItem[]
+  );
 
   // Function to refresh audit history for authenticated user
   const fetchLiveHistory = useCallback(() => {
@@ -208,7 +211,7 @@ export default function Home() {
     fetch(`http://localhost:8000/api/hoax-articles${qs}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: HoaxArticleItem[]) => {
-        if (Array.isArray(data)) setLiveHoaxArticles(data);
+        if (Array.isArray(data) && data.length > 0) setLiveHoaxArticles(data);
       })
       .catch(() => { });
   }, []);

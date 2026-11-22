@@ -18,6 +18,7 @@ from web3.exceptions import ContractLogicError
 
 import config
 from schemas import RelayRequest, RelayResponse
+from services.db_service import update_audit_history_tx_hash
 
 def _get_deployment_file() -> Path:
     backend_deploy = Path(__file__).resolve().parents[1] / "deployments" / "sepolia.json"
@@ -451,6 +452,10 @@ def _persist_verification_to_supabase(
         sb.table("verifications").insert(row).execute()
     except Exception as exc:
         print(f"[Relayer] Gagal simpan log ke Supabase (non-fatal): {exc}")
+    try:
+        update_audit_history_tx_hash(article_hash, tx_hash)
+    except Exception as exc:
+        print(f"[Relayer] Gagal update user_audit_history (non-fatal): {exc}")
 
 
 async def relay_verification(req: RelayRequest, user_did: str) -> RelayResponse:
@@ -619,6 +624,21 @@ def get_onchain_status() -> Dict[str, Any]:
         "deployer": artifact.get("deployer"),
         "eip712Domain": artifact.get("eip712", {}).get("domain", {}),
         "rpcConnected": w3.is_connected(),
+    }
+
+
+def get_verifier_nonce(wallet_address: str) -> Dict[str, Any]:
+    """Retrieve current EIP-712 nonce and verifying contract metadata for a wallet address."""
+    if not Web3.is_address(wallet_address):
+        raise HTTPException(status_code=400, detail="Format address EVM tidak valid.")
+    _, contract, artifact = get_contract_bundle()
+    checksum_addr = Web3.to_checksum_address(wallet_address)
+    nonce_val = int(contract.functions.nonces(checksum_addr).call())
+    return {
+        "address": checksum_addr,
+        "nonce": nonce_val,
+        "contractAddress": contract.address,
+        "chainId": int(artifact.get("chainId", 11155111)),
     }
 
 

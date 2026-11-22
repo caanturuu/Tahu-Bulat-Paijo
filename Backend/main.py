@@ -34,6 +34,7 @@ from services.relayer import (
     get_relayer_status,
     get_onchain_status,
     get_onchain_record,
+    get_verifier_nonce,
     check_onchain_article_change,
     derive_article_key,
 )
@@ -63,6 +64,7 @@ def compute_deterministic_cid(payload: Dict[str, Any]) -> str:
 
 # High-speed in-memory verification cache
 _VERIFY_CACHE: Dict[str, VerificationResult] = {}
+_TEXT_SNAPSHOTS: Dict[str, str] = {}
 
 def _init_cache_from_hoaxes():
     """Pre-warm cache with seeded hoax articles so instant responses are returned for popular claims."""
@@ -134,7 +136,7 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
     1. Scrape clean body text & calculate deterministic normalized SHA-256
     2. Check fast memory cache for repeated claims
     3. Query Google Fact Check Tools API for official debunks (ClaimReview)
-    4. Perform semantic analysis & scoring via Gemini Flash Lite (async thread)
+    4. Perform semantic analysis & scoring via Gemini 3.5 Flash (async thread)
     5. Issue deterministic IPFS CID & gasless relay ticket immediately
     6. Asynchronously archive snapshot to IPFS via Pinata & save history to Supabase
     """
@@ -261,6 +263,8 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
 
     if not text:
         text = req.query
+
+    _TEXT_SNAPSHOTS[article_hash.lower().removeprefix("0x")] = text
 
     # 2. Fact Check Search (MAFINDO, Kompas, Tempo, AFP via ClaimReview)
     fact_check_claims = await search_fact_checks(title or text[:100])
@@ -415,6 +419,11 @@ def read_chain_record(record_id: int):
     """Retrieve a verified verification record directly from the smart contract on Sepolia."""
     return get_onchain_record(record_id)
 
+@app.get("/api/chain/nonce/{address}")
+def read_chain_nonce(address: str):
+    """Retrieve the current EIP-712 nonce and contract metadata for a verifier address."""
+    return get_verifier_nonce(address)
+
 @app.get("/api/history")
 def read_audit_history(limit: int = 50, user_address: Optional[str] = None):
     """Retrieve audit history from Supabase table user_audit_history for authenticated user."""
@@ -449,7 +458,9 @@ async def rescan_article(req: RescanRequest):
 
     current_data = extract_article_content(req.url)
     current_hash = current_data["articleHash"]
-    has_revisions = current_hash.lower() != req.originalHash.lower()
+    norm_current = current_hash.strip().lower().removeprefix("0x")
+    norm_original = req.originalHash.strip().lower().removeprefix("0x")
+    has_revisions = norm_current != norm_original
 
     # Synchronize with on-chain contract state if available
     try:
@@ -462,11 +473,16 @@ async def rescan_article(req: RescanRequest):
 
     diff_summary = DiffSummary()
     if has_revisions:
-        diff_summary = DiffSummary(
-            addedWords=12,
-            removedWords=5,
-            diffHtml="<span>Deteksi perubahan pada teks artikel live terverifikasi on-chain.</span>",
-        )
+        baseline_text = req.originalText or _TEXT_SNAPSHOTS.get(req.originalHash.lower().removeprefix("0x"))
+        if baseline_text:
+            diff_data = compute_text_diff(baseline_text, current_data.get("text", ""))
+            diff_summary = DiffSummary(**diff_data)
+        else:
+            diff_summary = DiffSummary(
+                addedWords=0,
+                removedWords=0,
+                diffHtml="<span>Hash artikel berubah di halaman live, namun teks awal tidak tersedia untuk perbandingan kata.</span>",
+            )
 
     return RescanResponse(
         url=req.url,

@@ -33,6 +33,10 @@ export interface VerificationResult {
     removedWords: number;
     diffHtml?: string;
   };
+  verifyTicket?: string;
+  recordId?: number;
+  relayStatus?: "relaying" | "success" | "duplicate_skipped" | "failed";
+  relayMessage?: string;
 }
 
 export interface HoaxArticleItem {

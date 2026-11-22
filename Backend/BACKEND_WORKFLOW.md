@@ -1,6 +1,6 @@
 # VeritasChain — Backend Workflow & Architecture Guide
 
-Dokumen ini adalah panduan teknis implementasi backend **FastAPI (Python 3.12)** untuk sistem verifikasi berita terdesentralisasi **VeritasChain**. Backend bertindak sebagai orkestrator antara antarmuka pengguna (Frontend), mesin pencari cek fakta, kecerdasan buatan (Gemini 2.0 Flash), dan penyimpanan terdesentralisasi (IPFS via Pinata).
+Dokumen ini adalah panduan teknis implementasi backend **FastAPI (Python 3.12)** untuk sistem verifikasi berita terdesentralisasi **VeritasChain**. Backend bertindak sebagai orkestrator antara antarmuka pengguna (Frontend), mesin pencari cek fakta, kecerdasan buatan (Gemini 3.5 Flash), dan penyimpanan terdesentralisasi (IPFS via Pinata).
 
 ---
 
@@ -13,7 +13,7 @@ sequenceDiagram
     participant API as FastAPI Backend
     participant Scraper as trafilatura (Scraper)
     participant GFact as Google Fact Check API
-    participant Gemini as Gemini 2.0 Flash
+    participant Gemini as Gemini 3.5 Flash
     participant IPFS as Pinata (IPFS)
     participant DB as Supabase DB
 
@@ -59,7 +59,7 @@ Backend/
 ├── services/
 │   ├── scraper.py           # Ekstraksi badan teks berita bersih & hashing SHA-256
 │   ├── fact_check.py        # Klien Google Fact Check Tools API (ClaimReview)
-│   ├── ai_verifier.py       # Prompting & reasoning Gemini 2.0 Flash (google-genai SDK)
+│   ├── ai_verifier.py       # Prompting & reasoning Gemini 3.5 Flash (google-genai SDK)
 │   ├── ipfs_service.py      # Pinning payload verifikasi ke IPFS via Pinata API
 │   └── diff_tracker.py      # Visual diff & perbandingan hash untuk artikel revisi
 └── schemas/
@@ -164,7 +164,7 @@ Backend/
   `GET https://factchecktools.googleapis.com/v1alpha1/claims:search?query={keyword}&key={FACT_CHECK_API_KEY}&languageCode=id`
 * Memetakan respons `ClaimReview` ke model data `FactCheckClaim`.
 
-### 3. `ai_verifier.py` (Gemini 2.0 Flash)
+### 3. `ai_verifier.py` (Gemini 3.5 Flash)
 * Menggunakan SDK modern `google-genai`:
   ```python
   from google import genai
@@ -186,7 +186,7 @@ Backend/
       - keyFindings (array of string, 3 poin utama)
       """
       response = client.models.generate_content(
-          model='gemini-2.0-flash',
+          model='gemini-3.5-flash',
           contents=prompt,
           config=types.GenerateContentConfig(response_mime_type="application/json")
       )
@@ -215,7 +215,7 @@ Backend/
 ## 5. Variabel Lingkungan yang Dibutuhkan (`.env`)
 
 Backend membaca konfigurasi dari file [.env](file:///d:/Tahu-Bulat-Paijo/.env):
-* `GEMINI_API_KEY`: Kunci Google AI Studio (Gemini 2.0 Flash)
+* `GEMINI_API_KEY`: Kunci Google AI Studio (Gemini 3.5 Flash)
 * `FACT_CHECK_API_KEY`: Kunci Google Fact Check Tools API
 * `PINATA_JWT`: Token otentikasi Pinata Cloud
 * `SUPABASE_URL` & `SUPABASE_SERVICE_ROLE_KEY`: Kredensial database Supabase

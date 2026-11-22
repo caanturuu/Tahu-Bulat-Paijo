@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useSignTypedData } from "@privy-io/react-auth";
+import { keccak256, stringToBytes } from "viem";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
+import { VERITAS_CONTRACT_ADDRESS } from "@/components/ProofBadge";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult, HoaxArticleItem, AuditHistoryItem } from "@/types";
@@ -142,8 +144,9 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
 
 
 export default function Home() {
-  const { authenticated, user } = usePrivy();
+  const { authenticated, user, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
+  const { signTypedData } = useSignTypedData();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -239,6 +242,167 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  const relayVerificationToSepolia = useCallback(
+    async (targetResult: VerificationResult) => {
+      if (targetResult.isNews === false || !targetResult.verifyTicket || targetResult.txHash) {
+        return;
+      }
+      if (!authenticated) {
+        setResult((prev) =>
+          prev && prev.articleHash === targetResult.articleHash
+            ? {
+                ...prev,
+                relayStatus: "failed",
+                relayMessage: "Login dengan akun Privy untuk pencatatan otomatis ke Sepolia.",
+              }
+            : prev
+        );
+        return;
+      }
+      if (!walletAddress) {
+        setResult((prev) =>
+          prev && prev.articleHash === targetResult.articleHash
+            ? {
+                ...prev,
+                relayStatus: "failed",
+                relayMessage: "Wallet Privy belum aktif. Klik Ulangi sesaat lagi.",
+              }
+            : prev
+        );
+        return;
+      }
+
+      const rawHash = targetResult.articleHash.trim().toLowerCase().replace(/^0x/, "");
+      const normalizedHash = `0x${rawHash}`;
+
+      setResult((prev) =>
+        prev && prev.articleHash === targetResult.articleHash
+          ? { ...prev, relayStatus: "relaying", relayMessage: undefined }
+          : prev
+      );
+
+      try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          throw new Error("Sesi login Privy kedaluwarsa. Silakan login ulang.");
+        }
+
+        const nonceRes = await fetch(
+          `http://localhost:8000/api/chain/nonce/${encodeURIComponent(walletAddress)}`
+        );
+        if (!nonceRes.ok) {
+          throw new Error("Gagal membaca nonce smart contract Sepolia.");
+        }
+        const nonceData = await nonceRes.json();
+        const checksumVerifier: string = nonceData.address || walletAddress;
+        const contractAddress: string = nonceData.contractAddress || VERITAS_CONTRACT_ADDRESS;
+        const chainId = Number(nonceData.chainId || 11155111);
+
+        const trimmedUrl = (targetResult.url || "").trim();
+        const articleKey = trimmedUrl ? keccak256(stringToBytes(trimmedUrl)) : normalizedHash;
+        const deadline = Math.floor(Date.now() / 1000) + 600;
+
+        const { signature } = await signTypedData(
+          {
+            domain: {
+              name: "VeritasChain",
+              version: "1",
+              chainId,
+              verifyingContract: contractAddress,
+            },
+            types: {
+              RecordVerification: [
+                { name: "articleKey", type: "bytes32" },
+                { name: "contentHash", type: "bytes32" },
+                { name: "ipfsCid", type: "string" },
+                { name: "credibilityScore", type: "uint8" },
+                { name: "verifier", type: "address" },
+                { name: "nonce", type: "uint256" },
+                { name: "deadline", type: "uint256" },
+              ],
+            },
+            primaryType: "RecordVerification",
+            message: {
+              articleKey,
+              contentHash: normalizedHash,
+              ipfsCid: targetResult.ipfsCid,
+              credibilityScore: Number(targetResult.credibilityScore),
+              verifier: checksumVerifier,
+              nonce: Number(nonceData.nonce),
+              deadline,
+            },
+          },
+          {
+            address: checksumVerifier,
+            uiOptions: { showWalletUIs: false },
+          }
+        );
+
+        const relayRes = await fetch("http://localhost:8000/api/relay", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            userAddress: checksumVerifier,
+            articleHash: normalizedHash,
+            articleKey,
+            url: trimmedUrl || undefined,
+            credibilityScore: targetResult.credibilityScore,
+            ipfsCid: targetResult.ipfsCid,
+            deadline,
+            signature,
+            verifyTicket: targetResult.verifyTicket,
+          }),
+        });
+
+        if (!relayRes.ok) {
+          const errJson = await relayRes.json().catch(() => null);
+          const errMsg =
+            typeof errJson?.detail === "string"
+              ? errJson.detail
+              : errJson?.detail?.message || `Gagal mencatat ke Sepolia (HTTP ${relayRes.status}).`;
+          throw new Error(errMsg);
+        }
+
+        const relayData = await relayRes.json();
+        setResult((prev) =>
+          prev && prev.articleHash === targetResult.articleHash
+            ? {
+                ...prev,
+                txHash: relayData.txHash ?? prev.txHash,
+                recordId: relayData.recordId ?? prev.recordId,
+                relayStatus: relayData.status,
+                relayMessage: undefined,
+              }
+            : prev
+        );
+
+        if (relayData.txHash) {
+          setLiveHistory((prev) =>
+            prev.map((item) =>
+              item.article_hash?.trim().toLowerCase().replace(/^0x/, "") === rawHash
+                ? { ...item, tx_hash: relayData.txHash }
+                : item
+            )
+          );
+          if (currentUserAddress) {
+            setTimeout(() => fetchLiveHistory(), 800);
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Gagal mencatat ke Sepolia.";
+        setResult((prev) =>
+          prev && prev.articleHash === targetResult.articleHash
+            ? { ...prev, relayStatus: "failed", relayMessage: message }
+            : prev
+        );
+      }
+    },
+    [authenticated, walletAddress, getAccessToken, signTypedData, currentUserAddress, fetchLiveHistory]
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || isLoading) return;
@@ -273,7 +437,7 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const liveData = await res.json();
+        const liveData: VerificationResult = await res.json();
         setResult(liveData);
 
         // Optimistically record to local liveHistory so user sees it in Riwayat immediately
@@ -293,6 +457,10 @@ export default function Home() {
         // Refresh live history from Supabase
         if (currentUserAddress) {
           setTimeout(() => fetchLiveHistory(), 1200);
+        }
+
+        if (liveData.isNews !== false && liveData.verifyTicket && !liveData.txHash) {
+          void relayVerificationToSepolia(liveData);
         }
       } else {
         // Backend returned non-200, keep card empty (no dummy data)
@@ -813,7 +981,17 @@ export default function Home() {
               )}
 
               {/* ResultCard: Displays verified data */}
-              <ResultCard data={result} isLoading={isLoading} />
+              <ResultCard
+                data={result}
+                isLoading={isLoading}
+                onRetryRelay={
+                  result
+                    ? () => {
+                        void relayVerificationToSepolia(result);
+                      }
+                    : undefined
+                }
+              />
             </section>
           )}
         </>
@@ -1014,7 +1192,7 @@ export default function Home() {
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <Cpu className="h-6 w-6 text-emerald-600 mb-2" />
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Google Gemini 2.0 Flash</h4>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Google Gemini 3.5 Flash</h4>
                 <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
                   Mengekstraksi klaim inti berita dan melakukan penalaran semantik terhadap basis data ClaimReview secara real-time.
                 </p>

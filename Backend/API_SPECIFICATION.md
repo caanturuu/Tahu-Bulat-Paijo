@@ -41,7 +41,7 @@ Memeriksa apakah server backend FastAPI aktif dan terhubung ke jaringan.
 ---
 
 ## 2. Verifikasi Kredibilitas Berita (Core AI Pipeline)
-Menerima tautan URL berita atau teks panjang, melakukan ekstraksi konten bersih, query database sanggahan resmi, penalaran semantik via Gemini 2.0 Flash, dan pengarsipan snapshot ke IPFS via Pinata.
+Menerima tautan URL berita atau teks panjang, melakukan ekstraksi konten bersih, query database sanggahan resmi, penalaran semantik via Gemini 3.5 Flash, dan pengarsipan snapshot ke IPFS via Pinata.
 
 * **URL**: `/api/verify`
 * **Method**: `POST`

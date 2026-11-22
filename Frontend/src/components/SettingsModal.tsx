@@ -10,7 +10,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [network, setNetwork] = useState("base-sepolia");
-  const [aiModel, setAiModel] = useState("gemini-2.0-flash");
+  const [aiModel, setAiModel] = useState("gemini-3.5-flash");
   const [factCheckSource, setFactCheckSource] = useState("google-claimreview");
   const [isSaved, setIsSaved] = useState(false);
 
@@ -86,8 +86,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               onChange={(e) => setAiModel(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
             >
-              <option value="gemini-2.0-flash">Google Gemini 2.0 Flash (Default - Rekomendasi)</option>
-              <option value="gemini-1.5-pro">Google Gemini 1.5 Pro (Deep Reasoning)</option>
+              <option value="gemini-3.5-flash">Google Gemini 3.5 Flash (Default - Rekomendasi)</option>
+              <option value="gemini-3.5-flash-lite">Google Gemini 3.5 Flash Lite (Fallback Cepat)</option>
             </select>
           </div>
 

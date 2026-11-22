@@ -10,9 +10,10 @@ import { DiffViewer } from "./DiffViewer";
 interface ResultCardProps {
   data?: VerificationResult | null;
   isLoading?: boolean;
+  onRetryRelay?: () => void;
 }
 
-export function ResultCard({ data, isLoading }: ResultCardProps) {
+export function ResultCard({ data, isLoading, onRetryRelay }: ResultCardProps) {
   // If loading, render single-card animated skeleton
   if (isLoading) {
     return (
@@ -337,6 +338,10 @@ export function ResultCard({ data, isLoading }: ResultCardProps) {
           ipfsCid={data.ipfsCid}
           txHash={data.txHash}
           timestamp={data.timestamp}
+          recordId={data.recordId}
+          relayStatus={data.relayStatus}
+          relayMessage={data.relayMessage}
+          onRetryRelay={onRetryRelay}
         />
       </div>
     </div>

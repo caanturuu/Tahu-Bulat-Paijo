@@ -34,6 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
@@ -43,7 +44,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-blue-600 selection:text-white">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-blue-600 selection:text-white"
+      >
         <Web3Provider>
           <div className="flex-1 flex flex-col">{children}</div>
         </Web3Provider>

@@ -89,7 +89,7 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
 """
 
     models_to_try = [
-        {"model": "gemini-3.1-flash-lite", "budget": 0},
+        {"model": "gemini-3.5-flash", "budget": 0},
         {"model": "gemini-3.5-flash-lite", "budget": None},
     ]
     for item in models_to_try:
@@ -99,7 +99,7 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
             cfg = types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.1,
-                max_output_tokens=400,
+                max_output_tokens=800,
             )
             if budget is not None:
                 cfg.thinking_config = types.ThinkingConfig(thinking_budget=budget)

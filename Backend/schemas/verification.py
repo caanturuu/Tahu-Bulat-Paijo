@@ -22,6 +22,7 @@ class VerificationRequest(BaseModel):
 class RescanRequest(BaseModel):
     url: str
     originalHash: str
+    originalText: Optional[str] = None
 
 class VerificationResult(BaseModel):
     url: str

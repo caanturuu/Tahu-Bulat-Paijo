@@ -320,6 +320,74 @@ class TestRelayerSecurityAndGuards(unittest.TestCase):
             self.assertEqual(r3.status_code, 429)
             self.assertEqual(r3.json()["detail"]["fallbackMode"], "direct_wallet")
 
+    def test_chain_nonce_endpoint_and_validation(self) -> None:
+        bundle = self._mock_bundle()
+        bundle[1].functions.nonces.return_value.call.return_value = 5
+
+        with patch("services.relayer.get_contract_bundle", return_value=bundle):
+            ok_res = self.client.get(f"/api/chain/nonce/{self.user_acct.address.lower()}")
+            bad_res = self.client.get("/api/chain/nonce/invalid-address")
+
+        self.assertEqual(ok_res.status_code, 200)
+        body = ok_res.json()
+        self.assertEqual(body["address"], self.user_acct.address)
+        self.assertEqual(body["nonce"], 5)
+        self.assertEqual(body["contractAddress"], DEPLOYMENT_ARTIFACT["address"])
+        self.assertEqual(body["chainId"], 11155111)
+        self.assertEqual(bad_res.status_code, 400)
+
+    def test_successful_relay_syncs_audit_history_tx_hash(self) -> None:
+        ticket = self._issue_ticket()
+        bundle = self._mock_bundle()
+        mock_sb = MagicMock()
+        config.SUPABASE_URL = "https://example.supabase.co"
+        orig_service_key = config.SUPABASE_SERVICE_ROLE_KEY
+        config.SUPABASE_SERVICE_ROLE_KEY = "service-key"
+
+        async def fake_auth(_auth, _addr):
+            return "did:privy:user1"
+
+        try:
+            with (
+                patch("main.verify_privy_user_wallet", side_effect=fake_auth),
+                patch("services.relayer.get_contract_bundle", return_value=bundle),
+                patch("supabase.create_client", return_value=mock_sb),
+                patch("services.relayer.update_audit_history_tx_hash", return_value=True) as mock_update_hist,
+            ):
+                res = self.client.post(
+                    "/api/relay",
+                    headers={"Authorization": "Bearer fake-jwt"},
+                    json=self._make_payload(ticket=ticket),
+                )
+            self.assertEqual(res.status_code, 200)
+            mock_sb.table.assert_any_call("verifications")
+            mock_update_hist.assert_called_once()
+            called_hash, called_tx = mock_update_hist.call_args.args
+            self.assertEqual(called_hash, self.article_hash)
+            self.assertEqual(called_tx, res.json()["txHash"])
+        finally:
+            config.SUPABASE_SERVICE_ROLE_KEY = orig_service_key
+
+    def test_update_audit_history_tx_hash_matches_with_and_without_0x(self) -> None:
+        from services import db_service
+
+        mock_client = MagicMock()
+        mock_table = mock_client.table.return_value
+        mock_update = mock_table.update.return_value
+        mock_in = mock_update.in_.return_value
+        mock_is = mock_in.is_.return_value
+
+        with patch("services.db_service.get_supabase_client", return_value=mock_client):
+            ok = db_service.update_audit_history_tx_hash("0x" + self.article_hash, "0x" + "cd" * 32)
+
+        self.assertTrue(ok)
+        mock_client.table.assert_called_once_with("user_audit_history")
+        mock_table.update.assert_called_once_with({"tx_hash": "0x" + "cd" * 32})
+        mock_update.in_.assert_called_once_with("article_hash", [self.article_hash, "0x" + self.article_hash])
+        mock_in.is_.assert_called_once_with("tx_hash", "null")
+        mock_is.execute.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
+

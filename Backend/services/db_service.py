@@ -1,18 +1,18 @@
 from typing import Dict, Any, List, Optional
 from supabase import create_client, Client
-from config import SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+import config
 
 _client: Optional[Client] = None
 
 def get_supabase_client() -> Optional[Client]:
     """Initialize and return a singleton Supabase client using service role key."""
     global _client
+    if not config.SUPABASE_URL or not config.SUPABASE_SERVICE_ROLE_KEY or "your-project-id" in config.SUPABASE_URL:
+        return None
     if _client is not None:
         return _client
-    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or "your-project-id" in SUPABASE_URL:
-        return None
     try:
-        _client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        _client = create_client(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY)
         return _client
     except Exception as e:
         print(f"[Supabase] Client init error: {e}")
@@ -28,6 +28,26 @@ def save_audit_history(record: Dict[str, Any]) -> bool:
         return True
     except Exception as e:
         print(f"[Supabase] save_audit_history error: {e}")
+        return False
+
+
+def update_audit_history_tx_hash(article_hash: str, tx_hash: str) -> bool:
+    """Backfill tx_hash on pending user_audit_history rows matching article_hash."""
+    client = get_supabase_client()
+    if not client or not article_hash or not tx_hash:
+        return False
+    raw_hex = article_hash.strip().lower().removeprefix("0x")
+    try:
+        (
+            client.table("user_audit_history")
+            .update({"tx_hash": tx_hash})
+            .in_("article_hash", [raw_hex, f"0x{raw_hex}"])
+            .is_("tx_hash", "null")
+            .execute()
+        )
+        return True
+    except Exception as e:
+        print(f"[Supabase] update_audit_history_tx_hash error: {e}")
         return False
 
 def get_audit_history(limit: int = 50, user_address: Optional[str] = None) -> List[Dict[str, Any]]:

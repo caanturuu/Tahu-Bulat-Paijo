@@ -178,34 +178,35 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
         })
         return cached.model_copy(update={"timestamp": now_iso, "verifyTicket": ticket})
 
-    for cached_title, cached_res in _VERIFY_CACHE.items():
-        if len(norm_query) > 15 and (norm_query in cached_title or cached_title in norm_query):
-            ticket = ticket_store.issue(
-                article_hash=cached_res.articleHash,
-                ipfs_cid=cached_res.ipfsCid,
-                credibility_score=cached_res.credibilityScore,
-                metadata={
-                    "title": cached_res.title,
+    if not is_url:
+        for cached_title, cached_res in _VERIFY_CACHE.items():
+            if len(norm_query) > 15 and (norm_query in cached_title or cached_title in norm_query):
+                ticket = ticket_store.issue(
+                    article_hash=cached_res.articleHash,
+                    ipfs_cid=cached_res.ipfsCid,
+                    credibility_score=cached_res.credibilityScore,
+                    metadata={
+                        "title": cached_res.title,
+                        "status": cached_res.status,
+                        "summary": cached_res.summary,
+                        "keyFindings": cached_res.keyFindings,
+                        "claimsReview": cached_res.claimsReview,
+                    }
+                )
+                background_tasks.add_task(save_audit_history, {
+                    "user_address": req.userAddress or "0x0000000000000000000000000000000000000000",
+                    "article_title": cached_res.title,
+                    "query_input": req.query,
+                    "article_hash": cached_res.articleHash,
+                    "credibility_score": cached_res.credibilityScore,
                     "status": cached_res.status,
-                    "summary": cached_res.summary,
-                    "keyFindings": cached_res.keyFindings,
-                    "claimsReview": cached_res.claimsReview,
-                }
-            )
-            background_tasks.add_task(save_audit_history, {
-                "user_address": req.userAddress or "0x0000000000000000000000000000000000000000",
-                "article_title": cached_res.title,
-                "query_input": req.query,
-                "article_hash": cached_res.articleHash,
-                "credibility_score": cached_res.credibilityScore,
-                "status": cached_res.status,
-                "is_news": True,
-                "not_news_reason": None,
-                "tx_hash": cached_res.txHash,
-                "ipfs_cid": cached_res.ipfsCid,
-                "network": "Ethereum Sepolia",
-            })
-            return cached_res.model_copy(update={"timestamp": now_iso, "verifyTicket": ticket})
+                    "is_news": True,
+                    "not_news_reason": None,
+                    "tx_hash": cached_res.txHash,
+                    "ipfs_cid": cached_res.ipfsCid,
+                    "network": "Ethereum Sepolia",
+                })
+                return cached_res.model_copy(update={"timestamp": now_iso, "verifyTicket": ticket})
 
     # Quick heuristic check for non-news (extremely short greetings / test inputs)
     if not is_url and len(query_clean) < 10:
@@ -275,6 +276,7 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
         title=title,
         article_text=text,
         fact_check_claims=fact_check_claims,
+        publisher=publisher,
     )
 
     # If classified as NOT news, return dedicated non-news verification response

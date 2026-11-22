@@ -1,5 +1,6 @@
 import json
-from typing import Dict, Any, List
+import datetime
+from typing import Dict, Any, List, Optional
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY
@@ -8,12 +9,13 @@ def verify_article_with_gemini(
     title: str,
     article_text: str,
     fact_check_claims: List[Dict[str, Any]],
+    publisher: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Perform semantic reasoning and credibility scoring using Gemini Flash.
     Returns:
-    - narasi: Narasi atau klaim isu yang beredar
-    - penjelasan: Penjelasan detail fakta / bantahan
+    - narasi: Narasi atau klaim isu yang beredar / ringkasan peristiwa
+    - penjelasan: Penjelasan detail fakta / verifikasi
     - kesimpulan: Kesimpulan akhir
     - credibilityScore: 0 - 100
     - status: "VALID" | "QUESTIONABLE" | "HOAX"
@@ -36,21 +38,36 @@ def verify_article_with_gemini(
         }
 
     client = genai.Client(api_key=GEMINI_API_KEY)
+    current_date_str = datetime.datetime.now().strftime("%d %B %Y")
 
     prompt = f"""
 Anda adalah mesin verifikasi berita dan pemeriksa fakta resmi tingkat tinggi bernama VeritasChain.
-Tugas Anda:
-1. VALIDASI KONTEN (Apakah Ini Berita atau Bukan?):
-- Klasifikasikan apakah input ini merupakan BERITA / KLAIM INFORMASI PUBLIK (isNews = true) atau BUKAN BERITA (isNews = false).
-- Kategori BERITA / KLAIM PUBLIK (isNews = true): artikel jurnalistik, berita portal, kabar/isu viral di media sosial, rilis pers instansi/pemerintah, klaim peristiwa (5W+1H), klaim bantuan sosial, rumor publik, atau narasi hoaks yang beredar di masyarakat.
-- Kategori BUKAN BERITA (isNews = false): sapaan santai ("halo", "hai", "apa kabar"), resep masakan/makanan, baris kode program, matematika dasar, pertanyaan definisi umum kamus, curhatan/percakapan pribadi tanpa klaim publik, atau teks acak/gibberish.
+WAKTU SISTEM SAAT INI: {current_date_str}.
+Tahun saat ini adalah tahun berjalan di dunia nyata, BUKAN penanggalan fiktif masa depan. Pejabat publik (gubernur, kapolda, bupati, menteri) saat ini adalah pejabat hasil pemilu/pilkada atau mutasi resmi terbaru.
 
-2. INSTRUKSI OUTPUT JSON:
+TUGAS ANDA:
+1. VALIDASI KONTEN (Apakah Ini Berita atau Bukan?):
+- Kategori BUKAN BERITA (isNews = false): sapaan santai ("halo", "hai", "apa kabar"), resep masakan, kode program, matematika dasar, pertanyaan definisi kamus, curhatan/percakapan pribadi tanpa klaim publik, atau teks acak/gibberish.
+- Kategori BERITA / KLAIM PUBLIK (isNews = true): artikel jurnalistik pers, liputan berita portal, peristiwa nyata (kebakaran, musibah, bencana, kunjungan dinas, peresmian), kabar/isu viral di media sosial, rilis pers instansi/pemerintah, klaim bantuan sosial, atau narasi hoaks.
+
+2. PRINSIP PENILAIAN FAKTA & SKOR KREDIBILITAS:
+- KREDIBILITAS MEDIA PERS RESMI:
+  Jika artikel berasal dari media pers resmi atau portal berita arus utama terverifikasi (misalnya Detikcom / detik.com, Kompas, Antaranews, Tempo, CNN Indonesia, CNBC Indonesia, Kumparan, Tirto, Liputan6, Tribunnews, Jawapos, Republika, Bisnis.com, Merdeka, Sindonews, dll.) dan melaporkan liputan peristiwa nyata jurnalistik:
+  -> Artikel ini adalah BERITA FAKTA / VALID (skor 80 - 98)!
+  -> JANGAN menganggap liputan pers kredibel sebagai hoaks kecuali jika ada sanggahan resmi spesifik di database ClaimReview (MAFINDO/TurnBackHoax).
+- STATUS HOAX (< 40) HANYA DIBERIKAN JIKA:
+  1) Ada catatan bantahan resmi dari konsorsium cek fakta (ClaimReview MAFINDO/Kompas/Tempo) yang secara eksplisit menyatakan klaim ini SALAH/HOAKS.
+  2) Merupakan modus penipuan nyata (link bansos tunai fiktif via Telegram, link pendaftaran palsu, phising unduhan APK, giveaway mengatasnamakan tokoh).
+  3) Teori konspirasi palsu atau pseudosains medis yang membahayakan (misal: vaksin beracun, obat instan kanker tanpa uji klinis).
+  4) Pesan berantai anonim yang sepenuhnya mengada-ada tanpa sumber peristiwa nyata.
+- STATUS QUESTIONABLE (40 - 69):
+  Klaim yang belum dapat diverifikasi secara independen, konteks terpelintir (misleading context), atau judul clickbait yang tidak sesuai isi.
+
+3. FORMAT OUTPUT JSON PERSIS:
 Jika isNews = false:
-Kembalikan JSON persis berikut:
 {{
   "isNews": false,
-  "notNewsReason": "Jelaskan dengan ramah dalam 1-2 kalimat mengapa teks ini bukan merupakan artikel atau klaim berita publik.",
+  "notNewsReason": "Penjelasan ramah mengapa bukan berita publik.",
   "narasi": "Teks yang dimasukkan tidak teridentifikasi sebagai berita atau klaim informasi publik.",
   "penjelasan": "Konten ini tergolong teks non-berita. VeritasChain berfokus memeriksa keabsahan berita pers, isu viral, dan klaim kebijakan publik.",
   "kesimpulan": "Input Terdeteksi Bukan Berita.",
@@ -65,32 +82,31 @@ Kembalikan JSON persis berikut:
 }}
 
 Jika isNews = true:
-Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
 {{
   "isNews": true,
   "notNewsReason": null,
-  "narasi": (string: rangkuman narasi atau klaim viral yang beredar di masyarakat dalam 1-2 kalimat, diawali seperti "Beredar informasi/klaim bahwa..."),
-  "penjelasan": (string: penjelasan terperinci mengenai duduk perkara dan fakta yang sebenarnya dalam 2-3 kalimat padat membantah disinformasi atau mengonfirmasi fakta),
-  "kesimpulan": (string: 1 kalimat kesimpulan akhir yang singkat, padat, dan tegas mengenai kebenaran informasi ini beserta kategori hoaks/faktanya),
-  "credibilityScore": (integer antara 0 sampai 100, di mana 0 = mutlak hoaks/palsu, 100 = fakta valid dan terverifikasi resmi),
-  "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika skor 40-69, "HOAX" jika skor < 40),
-  "summary": (string: ringkasan inti 1-2 kalimat mengenai hasil analisis),
-  "keyFindings": (array of string: persis 3 poin temuan utama yang ringkas, padat, berbasis fakta dan data)
+  "narasi": (string: untuk berita nyata, ringkas pokok peristiwa secara objektif; untuk hoaks/rumor, tuliskan klaim yang beredar),
+  "penjelasan": (string: penjelasan fakta dan duduk perkara peristiwa secara objektif dan jernih dalam 2-3 kalimat),
+  "kesimpulan": (string: 1 kalimat kesimpulan tegas mengenai validitas dan fakta berita ini),
+  "credibilityScore": (integer 0-100: 80-98 untuk berita pers kredibel terverifikasi, 0-35 untuk hoaks/penipuan, 40-69 untuk meragukan),
+  "status": (string: "VALID" jika skor >= 70, "QUESTIONABLE" jika 40-69, "HOAX" jika < 40),
+  "summary": (string: ringkasan inti 1-2 kalimat),
+  "keyFindings": (array of string: persis 3 poin temuan utama yang ringkas, padat, berbasis fakta peristiwa)
 }}
 
-[JUDUL ARTIKEL / KLAIM]
-{title}
-
-[TEKS ARTIKEL LENGKAP]
+[SUMBER / PENERBIT]: {publisher or "Portal Berita / Sumber Publik"}
+[JUDUL ARTIKEL / KLAIM]: {title}
+[TEKS ARTIKEL LENGKAP]:
 {article_text[:3500]}
 
-[REFERENSI BASIS DATA CEK FAKTA RESMI (CLAIMREVIEW)]
-{json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan spesifik yang ditemukan di basis data."}
+[REFERENSI BASIS DATA CEK FAKTA RESMI (CLAIMREVIEW)]:
+{json.dumps(fact_check_claims, ensure_ascii=False) if fact_check_claims else "Tidak ada catatan sanggahan di basis data cek fakta resmi (tidak terindikasi hoaks)."}
 """
 
     models_to_try = [
         {"model": "gemini-3.5-flash", "budget": 0},
         {"model": "gemini-3.5-flash-lite", "budget": None},
+        {"model": "gemini-3.1-flash-lite", "budget": 0},
     ]
     for item in models_to_try:
         model_name = item["model"]

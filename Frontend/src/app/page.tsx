@@ -159,8 +159,25 @@ export default function Home() {
 
   const isUserAuthenticated = authenticated || isLoggedIn;
   const walletAddress = resolveWalletAddress(user, wallets);
-  const userEmailDisplay = user?.google?.email || user?.email?.address || userEmail || "";
-  const currentUserAddress = walletAddress || userEmailDisplay || (isUserAuthenticated ? "validator@veritaschain.id" : "");
+  const userEmailDisplay =
+    user?.google?.email ||
+    user?.email?.address ||
+    (user?.linkedAccounts?.find(
+      (acc) => "email" in acc && typeof (acc as { email?: unknown }).email === "string"
+    ) as { email?: string } | undefined)?.email ||
+    userEmail ||
+    "";
+
+  // Account email to display in the UI (only shows email)
+  const accountEmail =
+    userEmailDisplay || (isUserAuthenticated ? "validator@veritaschain.id" : "");
+
+  // Sync key: query both email and wallet if available
+  const historyQueryParam = [userEmailDisplay, walletAddress]
+    .filter(Boolean)
+    .join(",");
+  const currentUserAddress =
+    historyQueryParam || (isUserAuthenticated ? "validator@veritaschain.id" : "");
 
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
@@ -852,7 +869,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                    Akun: {currentUserAddress ? (currentUserAddress.includes("@") ? currentUserAddress : shortenHash(currentUserAddress, 8)) : "Sesi Pengguna"}
+                    Akun: {accountEmail || "Sesi Pengguna"}
                   </span>
                   <span>•</span>
                   <span>

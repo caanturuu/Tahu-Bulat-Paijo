@@ -31,14 +31,19 @@ def save_audit_history(record: Dict[str, Any]) -> bool:
         return False
 
 def get_audit_history(limit: int = 50, user_address: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Retrieve recent verification history records for a specific user."""
+    """Retrieve recent verification history records for a specific user or email."""
     client = get_supabase_client()
     if not client:
         return []
     try:
         query = client.table("user_audit_history").select("*")
         if user_address and user_address.strip():
-            query = query.eq("user_address", user_address.strip())
+            raw = user_address.strip()
+            addrs = [a.strip() for a in raw.split(",") if a.strip()]
+            if len(addrs) == 1:
+                query = query.eq("user_address", addrs[0])
+            elif len(addrs) > 1:
+                query = query.in_("user_address", addrs)
         res = query.order("created_at", desc=True).limit(limit).execute()
         return res.data or []
     except Exception as e:

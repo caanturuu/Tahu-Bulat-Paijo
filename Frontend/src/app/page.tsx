@@ -198,7 +198,7 @@ export default function Home() {
   // Function to refresh audit history for authenticated user
   const fetchLiveHistory = useCallback(() => {
     if (!currentUserAddress) return;
-    fetch(`http://localhost:8000/api/history?user_address=${encodeURIComponent(currentUserAddress)}`)
+    fetch(`/api/history?user_address=${encodeURIComponent(currentUserAddress)}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: AuditHistoryItem[]) => {
         if (Array.isArray(data)) setLiveHistory(data);
@@ -212,7 +212,7 @@ export default function Home() {
     if (cat && cat !== "Semua") params.append("category", cat);
     if (search && search.trim()) params.append("q", search.trim());
     const qs = params.toString() ? `?${params.toString()}` : "";
-    fetch(`http://localhost:8000/api/hoax-articles${qs}`)
+    fetch(`/api/hoax-articles${qs}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: HoaxArticleItem[]) => {
         if (Array.isArray(data) && data.length > 0) setLiveHoaxArticles(data);
@@ -288,7 +288,7 @@ export default function Home() {
         }
 
         const nonceRes = await fetch(
-          `http://localhost:8000/api/chain/nonce/${encodeURIComponent(walletAddress)}`
+          `/api/chain/nonce/${encodeURIComponent(walletAddress)}`
         );
         if (!nonceRes.ok) {
           throw new Error("Gagal membaca nonce smart contract Sepolia.");
@@ -338,7 +338,7 @@ export default function Home() {
           }
         );
 
-        const relayRes = await fetch("http://localhost:8000/api/relay", {
+        const relayRes = await fetch("/api/relay", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -426,8 +426,8 @@ export default function Home() {
       const addressToSend =
         currentUserAddress || "0x0000000000000000000000000000000000000000";
 
-      // Connect to real FastAPI backend if running
-      const res = await fetch("http://localhost:8000/api/verify", {
+      // Connect to FastAPI backend via Next.js /api proxy
+      const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

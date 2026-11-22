@@ -161,6 +161,19 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
                 "claimsReview": cached.claimsReview,
             }
         )
+        background_tasks.add_task(save_audit_history, {
+            "user_address": req.userAddress or "0x0000000000000000000000000000000000000000",
+            "article_title": cached.title,
+            "query_input": req.query,
+            "article_hash": cached.articleHash,
+            "credibility_score": cached.credibilityScore,
+            "status": cached.status,
+            "is_news": True,
+            "not_news_reason": None,
+            "tx_hash": cached.txHash,
+            "ipfs_cid": cached.ipfsCid,
+            "network": "Ethereum Sepolia",
+        })
         return cached.model_copy(update={"timestamp": now_iso, "verifyTicket": ticket})
 
     for cached_title, cached_res in _VERIFY_CACHE.items():
@@ -177,6 +190,19 @@ async def verify_article(req: VerificationRequest, background_tasks: BackgroundT
                     "claimsReview": cached_res.claimsReview,
                 }
             )
+            background_tasks.add_task(save_audit_history, {
+                "user_address": req.userAddress or "0x0000000000000000000000000000000000000000",
+                "article_title": cached_res.title,
+                "query_input": req.query,
+                "article_hash": cached_res.articleHash,
+                "credibility_score": cached_res.credibilityScore,
+                "status": cached_res.status,
+                "is_news": True,
+                "not_news_reason": None,
+                "tx_hash": cached_res.txHash,
+                "ipfs_cid": cached_res.ipfsCid,
+                "network": "Ethereum Sepolia",
+            })
             return cached_res.model_copy(update={"timestamp": now_iso, "verifyTicket": ticket})
 
     # Quick heuristic check for non-news (extremely short greetings / test inputs)

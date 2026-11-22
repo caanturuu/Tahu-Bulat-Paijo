@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Navbar } from "@/components/Navbar";
 import { ResultCard } from "@/components/ResultCard";
 import { LoginModal } from "@/components/LoginModal";
 import { FeatureDetailModal } from "@/components/FeatureDetailModal";
 import { VerificationResult, HoaxArticleItem, AuditHistoryItem } from "@/types";
-import { formatDate, shortenHash } from "@/lib/utils";
+import { formatDate, shortenHash, resolveWalletAddress } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -141,6 +141,7 @@ const SAMPLE_DIFF_VERIFICATION_RESULT: VerificationResult = {
 
 export default function Home() {
   const { authenticated, user } = usePrivy();
+  const { wallets } = useWallets();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -157,7 +158,9 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState("");
 
   const isUserAuthenticated = authenticated || isLoggedIn;
-  const currentUserAddress = user?.wallet?.address || (userEmail ? userEmail : "");
+  const walletAddress = resolveWalletAddress(user, wallets);
+  const userEmailDisplay = user?.google?.email || user?.email?.address || userEmail || "";
+  const currentUserAddress = walletAddress || userEmailDisplay || (isUserAuthenticated ? "validator@veritaschain.id" : "");
 
   // Hoax news search & filter state
   const [hoaxSearchQuery, setHoaxSearchQuery] = useState("");
@@ -236,8 +239,7 @@ export default function Home() {
 
     try {
       const addressToSend =
-        user?.wallet?.address ||
-        (userEmail ? userEmail : "0x0000000000000000000000000000000000000000");
+        currentUserAddress || "0x0000000000000000000000000000000000000000";
 
       // Connect to real FastAPI backend if running
       const res = await fetch("http://localhost:8000/api/verify", {
@@ -252,7 +254,25 @@ export default function Home() {
       if (res.ok) {
         const liveData = await res.json();
         setResult(liveData);
-        fetchLiveHistory();
+
+        // Optimistically record to local liveHistory so user sees it in Riwayat immediately
+        const newHistoryRow: AuditHistoryItem = {
+          id: liveData.articleHash || Date.now().toString(),
+          user_address: addressToSend,
+          article_title: liveData.title,
+          article_hash: liveData.articleHash,
+          credibility_score: liveData.credibilityScore,
+          status: liveData.status,
+          ipfs_cid: liveData.ipfsCid,
+          tx_hash: liveData.txHash,
+          created_at: new Date().toISOString(),
+        };
+        setLiveHistory((prev) => [newHistoryRow, ...prev.filter((p) => p.article_hash !== liveData.articleHash)]);
+
+        // Refresh live history from Supabase
+        if (currentUserAddress) {
+          setTimeout(() => fetchLiveHistory(), 1200);
+        }
       } else {
         // Backend returned non-200, keep card empty (no dummy data)
         setResult(null);
@@ -804,7 +824,7 @@ export default function Home() {
             </a>
           </div>
 
-          {!isUserAuthenticated ? (
+          {!isUserAuthenticated && liveHistory.length === 0 ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-8 sm:p-12 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900/90">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
                 <Lock className="h-7 w-7" />
@@ -832,7 +852,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                    Akun: {shortenHash(currentUserAddress, 8)}
+                    Akun: {currentUserAddress ? (currentUserAddress.includes("@") ? currentUserAddress : shortenHash(currentUserAddress, 8)) : "Sesi Pengguna"}
                   </span>
                   <span>•</span>
                   <span>
@@ -841,6 +861,15 @@ export default function Home() {
                       : "Belum ada riwayat audit tersimpan untuk akun Anda."}
                   </span>
                 </div>
+                {!isUserAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={() => setIsLoginOpen(true)}
+                    className="text-xs font-semibold text-[#185adb] hover:underline cursor-pointer"
+                  >
+                    Masuk Akun untuk Simpan Permanen →
+                  </button>
+                )}
               </div>
 
               {liveHistory.length === 0 ? (

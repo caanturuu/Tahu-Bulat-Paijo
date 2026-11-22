@@ -463,11 +463,19 @@ export default function Home() {
           void relayVerificationToSepolia(liveData);
         }
       } else {
-        // Backend returned non-200, keep card empty (no dummy data)
+        let errorMessage = `Backend merespons status ${res.status}.`;
+        try {
+          const errBody = await res.json();
+          if (typeof errBody?.detail === "string" && errBody.detail.trim()) {
+            errorMessage = errBody.detail.trim();
+          } else if (errBody?.detail?.message) {
+            errorMessage = String(errBody.detail.message);
+          }
+        } catch {
+          // Keep status fallback when response is not JSON
+        }
         setResult(null);
-        setServerNotice(
-          `Kueri diterima: "${query.trim()}". Backend merespons status ${res.status}. Data dummy telah dinonaktifkan, card tetap dalam kondisi kosong.`
-        );
+        setServerNotice(errorMessage);
       }
     } catch {
       // Backend offline / not running: keep card empty (no dummy data)
@@ -934,8 +942,8 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Verification Result Section: Only appears when examining or result exists */}
-          {(result || isLoading) && (
+          {/* Verification Result Section: Only appears when examining, result exists, or server error notice exists */}
+          {(result || isLoading || serverNotice) && (
             <section id="verification-result-section" className="mx-auto w-full max-w-5xl px-3 sm:px-6 py-10 sm:py-16 scroll-mt-20 animate-in fade-in duration-300">
               <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-zinc-800">
                 <div>
@@ -947,7 +955,7 @@ export default function Home() {
                     Hasil analisis verifikasi AI dan pencatatan audit on-chain.
                   </p>
                 </div>
-                {result && (
+                {(result || serverNotice) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -962,17 +970,17 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Server notice banner if backend is offline */}
+              {/* Server notice banner if backend/AI fails or is offline */}
               {serverNotice && (
-                <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start justify-between gap-3 animate-in fade-in">
+                <div className="mb-6 rounded-2xl border border-rose-200/90 bg-rose-50/80 p-4 text-xs text-rose-900 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200 flex items-start justify-between gap-3 animate-in fade-in">
                   <div className="flex items-start gap-2.5">
-                    <span className="font-bold shrink-0 text-[#185adb] dark:text-blue-400">Info:</span>
+                    <span className="font-bold shrink-0 text-rose-600 dark:text-rose-400">Error:</span>
                     <span className="leading-relaxed">{serverNotice}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setServerNotice(null)}
-                    className="font-bold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 shrink-0 cursor-pointer"
+                    className="font-bold text-rose-700 hover:text-rose-900 dark:text-rose-300 dark:hover:text-rose-100 shrink-0 cursor-pointer"
                     title="Tutup pemberitahuan"
                   >
                     ✕

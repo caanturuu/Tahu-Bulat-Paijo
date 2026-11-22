@@ -1,8 +1,127 @@
 import json
 from typing import Dict, Any, List
+from fastapi import HTTPException
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY
+
+_VALID_NEWS_STATUSES = {"VALID", "QUESTIONABLE", "HOAX"}
+
+
+class _AIValidationError(ValueError):
+    """Raised when Gemini responds with empty or invalid JSON fields."""
+
+
+def _require_non_empty_str(data: Dict[str, Any], field: str, empty_fields: List[str]) -> str:
+    val = data.get(field)
+    if not isinstance(val, str) or not val.strip():
+        empty_fields.append(field)
+        return ""
+    return val.strip()
+
+
+def _validate_gemini_payload(result: Any) -> Dict[str, Any]:
+    if not isinstance(result, dict):
+        raise _AIValidationError("Respons AI kosong atau bukan objek JSON yang valid.")
+
+    is_news = result.get("isNews")
+    if not isinstance(is_news, bool):
+        raise _AIValidationError("Field 'isNews' kosong atau tidak valid.")
+
+    empty_fields: List[str] = []
+
+    if not is_news:
+        not_news_reason = _require_non_empty_str(result, "notNewsReason", empty_fields)
+        narasi = _require_non_empty_str(result, "narasi", empty_fields)
+        penjelasan = _require_non_empty_str(result, "penjelasan", empty_fields)
+        kesimpulan = _require_non_empty_str(result, "kesimpulan", empty_fields)
+        summary = _require_non_empty_str(result, "summary", empty_fields)
+
+        raw_findings = result.get("keyFindings")
+        key_findings = (
+            [item.strip() for item in raw_findings if isinstance(item, str) and item.strip()]
+            if isinstance(raw_findings, list)
+            else []
+        )
+        if not key_findings:
+            empty_fields.append("keyFindings")
+
+        if empty_fields:
+            raise _AIValidationError(
+                f"Field hasil AI kosong dan tidak valid: {', '.join(empty_fields)}."
+            )
+
+        return {
+            "isNews": False,
+            "notNewsReason": not_news_reason,
+            "narasi": narasi,
+            "penjelasan": penjelasan,
+            "kesimpulan": kesimpulan,
+            "credibilityScore": 0,
+            "status": "NOT_NEWS",
+            "summary": summary,
+            "keyFindings": key_findings,
+        }
+
+    raw_score = result.get("credibilityScore")
+    score: int
+    if raw_score is None or raw_score == "" or isinstance(raw_score, bool):
+        empty_fields.append("credibilityScore")
+        score = -1
+    else:
+        try:
+            if isinstance(raw_score, float) and not raw_score.is_integer():
+                raise ValueError("not integer")
+            score = int(raw_score)
+        except (TypeError, ValueError) as exc:
+            raise _AIValidationError(
+                "Field 'credibilityScore' tidak valid (harus angka bulat 0-100)."
+            ) from exc
+        if score < 0 or score > 100:
+            raise _AIValidationError(
+                f"Field 'credibilityScore' ({score}) di luar rentang 0-100 dan tidak valid."
+            )
+
+    raw_status = result.get("status")
+    status = raw_status.strip().upper() if isinstance(raw_status, str) else ""
+    if not status:
+        empty_fields.append("status")
+    elif status not in _VALID_NEWS_STATUSES:
+        raise _AIValidationError(
+            f"Field 'status' ({raw_status}) tidak valid."
+        )
+
+    narasi = _require_non_empty_str(result, "narasi", empty_fields)
+    penjelasan = _require_non_empty_str(result, "penjelasan", empty_fields)
+    kesimpulan = _require_non_empty_str(result, "kesimpulan", empty_fields)
+    summary = _require_non_empty_str(result, "summary", empty_fields)
+
+    raw_findings = result.get("keyFindings")
+    key_findings = (
+        [item.strip() for item in raw_findings if isinstance(item, str) and item.strip()]
+        if isinstance(raw_findings, list)
+        else []
+    )
+    if not key_findings:
+        empty_fields.append("keyFindings")
+
+    if empty_fields:
+        raise _AIValidationError(
+            f"Field hasil AI kosong dan tidak valid: {', '.join(empty_fields)}."
+        )
+
+    return {
+        "isNews": True,
+        "notNewsReason": None,
+        "narasi": narasi,
+        "penjelasan": penjelasan,
+        "kesimpulan": kesimpulan,
+        "credibilityScore": score,
+        "status": status,
+        "summary": summary,
+        "keyFindings": key_findings,
+    }
+
 
 def verify_article_with_gemini(
     title: str,
@@ -11,29 +130,13 @@ def verify_article_with_gemini(
 ) -> Dict[str, Any]:
     """
     Perform semantic reasoning and credibility scoring using Gemini Flash.
-    Returns:
-    - narasi: Narasi atau klaim isu yang beredar
-    - penjelasan: Penjelasan detail fakta / bantahan
-    - kesimpulan: Kesimpulan akhir
-    - credibilityScore: 0 - 100
-    - status: "VALID" | "QUESTIONABLE" | "HOAX"
-    - summary: Ringkasan umum
-    - keyFindings: 3 poin temuan utama
+    Fails explicitly with HTTP 503/502 if Gemini is unavailable or returns empty/invalid fields.
     """
-    if not GEMINI_API_KEY:
-        return {
-            "credibilityScore": 75,
-            "status": "VALID",
-            "narasi": f"Klaim atau berita mengenai: {title}",
-            "penjelasan": "Teks artikel telah diarsipkan dan dihitung integritas kriptografisnya. Kunci API Gemini belum disetel pada file .env.",
-            "kesimpulan": "Perlu verifikasi lebih lanjut menggunakan API Key Gemini aktif.",
-            "summary": "Kunci API Gemini belum dikonfigurasi. Menampilkan hasil verifikasi standar sistem.",
-            "keyFindings": [
-                "API Key Gemini belum disetel pada .env",
-                "Format teks artikel terdeteksi bersih",
-                "Integritas SHA-256 berhasil dihitung",
-            ],
-        }
+    if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
+        raise HTTPException(
+            status_code=503,
+            detail="Layanan AI Gemini sedang mati/nonaktif: GEMINI_API_KEY belum dikonfigurasi di server.",
+        )
 
     client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -92,6 +195,9 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
         {"model": "gemini-3.5-flash", "budget": 0},
         {"model": "gemini-3.5-flash-lite", "budget": None},
     ]
+    validation_errors: List[str] = []
+    service_errors: List[str] = []
+
     for item in models_to_try:
         model_name = item["model"]
         budget = item["budget"]
@@ -99,7 +205,7 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
             cfg = types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.1,
-                max_output_tokens=800,
+                max_output_tokens=1024,
             )
             if budget is not None:
                 cfg.thinking_config = types.ThinkingConfig(thinking_budget=budget)
@@ -110,64 +216,36 @@ Lakukan analisis mendalam (standar MAFINDO / TurnBackHoax) dan kembalikan JSON:
                 config=cfg,
             )
 
-            result = json.loads(response.text)
-            is_news = result.get("isNews", True)
-            not_news_reason = result.get("notNewsReason")
-            
-            if not is_news:
-                return {
-                    "isNews": False,
-                    "notNewsReason": not_news_reason or "Teks yang dimasukkan terdeteksi bukan merupakan artikel atau klaim berita publik.",
-                    "narasi": result.get("narasi", "Teks yang dimasukkan tidak teridentifikasi sebagai berita atau klaim informasi publik."),
-                    "penjelasan": result.get("penjelasan", "Konten ini tergolong teks non-berita. VeritasChain berfokus memeriksa keabsahan berita pers, isu viral, dan klaim kebijakan publik."),
-                    "kesimpulan": result.get("kesimpulan", "Input Terdeteksi Bukan Berita."),
-                    "credibilityScore": 0,
-                    "status": "NOT_NEWS",
-                    "summary": result.get("summary", "Teks ini bukan merupakan berita atau klaim peristiwa publik."),
-                    "keyFindings": result.get("keyFindings", [
-                        "Input tidak memuat unsur 5W+1H peristiwa atau kebijakan publik.",
-                        "Tidak ditemukan klaim faktual yang dapat diverifikasi kebenarannya.",
-                        "Sistem membatasi audit hanya untuk konten berita dan informasi publik."
-                    ]),
-                }
+            raw_text = getattr(response, "text", None)
+            if not isinstance(raw_text, str) or not raw_text.strip():
+                raise _AIValidationError("Respons AI kosong dan tidak valid.")
 
-            score = int(result.get("credibilityScore", 80))
-            status = result.get("status", "VALID" if score >= 70 else "QUESTIONABLE" if score >= 40 else "HOAX")
-            narasi = result.get("narasi", f"Klaim terkait: {title}")
-            penjelasan = result.get("penjelasan", result.get("summary", "Penjelasan fakta hasil verifikasi."))
-            kesimpulan = result.get("kesimpulan", f"Berdasarkan verifikasi, informasi ini berstatus {status}.")
-            summary = result.get("summary", kesimpulan)
-            key_findings = result.get("keyFindings", [
-                "Pemeriksaan teks konsisten dengan fakta umum.",
-                "Tidak ada manipulasi klaim ekstrem terdeteksi.",
-                "Struktur narasumber kredibel.",
-            ])
+            try:
+                result = json.loads(raw_text)
+            except json.JSONDecodeError as exc:
+                raise _AIValidationError("Respons AI bukan JSON yang valid.") from exc
 
-            return {
-                "isNews": True,
-                "notNewsReason": None,
-                "narasi": narasi,
-                "penjelasan": penjelasan,
-                "kesimpulan": kesimpulan,
-                "credibilityScore": score,
-                "status": status,
-                "summary": summary,
-                "keyFindings": key_findings,
-            }
-        except Exception as e:
-            print(f"[GeminiVerifier] Error trying model {model_name}: {e}")
-            continue
+            return _validate_gemini_payload(result)
+        except _AIValidationError as exc:
+            print(f"[GeminiVerifier] Invalid output from {model_name}: {exc}")
+            validation_errors.append(f"{model_name}: {exc}")
+        except Exception as exc:
+            print(f"[GeminiVerifier] Error trying model {model_name}: {exc}")
+            service_errors.append(f"{model_name}: {exc}")
 
-    return {
-        "narasi": f"Klaim atau berita mengenai: {title}",
-        "penjelasan": "Penalaran AI menghadapi pembatasan server sementara. Teks artikel berhasil diarsipkan dan dihitung hash SHA-256.",
-        "kesimpulan": "Status verifikasi sementara: MERAGUKAN (Perlu verifikasi manual lanjutan).",
-        "credibilityScore": 70,
-        "status": "QUESTIONABLE",
-        "summary": "Penalaran AI menghadapi pembatasan server sementara. Menampilkan evaluasi heuristik.",
-        "keyFindings": [
-            "Layanan AI mengalami beban puncak sementara.",
-            "Teks berita berhasil diarsipkan ke IPFS.",
-            "Hash kriptografi valid.",
-        ],
-    }
+    if validation_errors and not service_errors:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Respons AI tidak valid atau ada field kosong ({'; '.join(validation_errors)}). Verifikasi dibatalkan.",
+        )
+
+    if validation_errors:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Verifikasi AI gagal: sebagian output kosong/tidak valid dan model cadangan tidak merespons ({'; '.join(validation_errors + service_errors)}).",
+        )
+
+    raise HTTPException(
+        status_code=503,
+        detail=f"Layanan AI Gemini sedang mati atau tidak dapat dihubungi ({'; '.join(service_errors)}). Verifikasi dibatalkan agar tidak menghasilkan skor palsu.",
+    )

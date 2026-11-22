@@ -1,4 +1,3 @@
-import hashlib
 from typing import Dict, Any
 import httpx
 from config import PINATA_JWT
@@ -22,7 +21,7 @@ async def pin_json_to_ipfs(payload: Dict[str, Any], name: str = "VeritasChain-Re
         }
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.post(PINATA_PIN_JSON_URL, json=body, headers=headers)
                 if res.status_code in (200, 201):
                     data = res.json()
@@ -32,6 +31,4 @@ async def pin_json_to_ipfs(payload: Dict[str, Any], name: str = "VeritasChain-Re
         except Exception as e:
             print(f"[IPFSService] Exception during Pinata upload: {e}")
 
-    # Deterministic fallback CID based on payload hash
-    fallback_hash = hashlib.sha256(str(payload).encode("utf-8")).hexdigest()
-    return f"bafybeig{fallback_hash[:40]}demo"
+    return ""

@@ -40,10 +40,13 @@ def get_audit_history(limit: int = 50, user_address: Optional[str] = None) -> Li
         if user_address and user_address.strip():
             raw = user_address.strip()
             addrs = [a.strip() for a in raw.split(",") if a.strip()]
-            if len(addrs) == 1:
-                query = query.eq("user_address", addrs[0])
-            elif len(addrs) > 1:
-                query = query.in_("user_address", addrs)
+            conditions = []
+            for a in addrs:
+                # Support exact match and substring match (e.g. if stored as email,wallet or queried by email only)
+                conditions.append(f"user_address.eq.{a}")
+                conditions.append(f"user_address.ilike.%{a}%")
+            if conditions:
+                query = query.or_(",".join(conditions))
         res = query.order("created_at", desc=True).limit(limit).execute()
         return res.data or []
     except Exception as e:

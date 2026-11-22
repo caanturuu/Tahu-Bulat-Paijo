@@ -26,6 +26,7 @@ import {
   Sparkles,
   X,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 
 // 10 Curated News Context Backgrounds from User Upload
@@ -220,7 +221,7 @@ export default function Home() {
     if (isUserAuthenticated && currentUserAddress) {
       fetchLiveHistory();
     }
-  }, [isUserAuthenticated, currentUserAddress, fetchLiveHistory]);
+  }, [isUserAuthenticated, currentUserAddress, activeTab, fetchLiveHistory]);
 
   useEffect(() => {
     fetchLiveHoaxArticles(selectedHoaxCategory);
@@ -881,15 +882,26 @@ export default function Home() {
                       : "Belum ada riwayat audit tersimpan untuk akun Anda."}
                   </span>
                 </div>
-                {!isUserAuthenticated && (
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsLoginOpen(true)}
-                    className="text-xs font-semibold text-[#185adb] hover:underline cursor-pointer"
+                    onClick={() => fetchLiveHistory()}
+                    className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                    title="Segarkan riwayat audit"
                   >
-                    Masuk Akun untuk Simpan Permanen →
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>Segarkan</span>
                   </button>
-                )}
+                  {!isUserAuthenticated && (
+                    <button
+                      type="button"
+                      onClick={() => setIsLoginOpen(true)}
+                      className="text-xs font-semibold text-[#185adb] hover:underline cursor-pointer"
+                    >
+                      Masuk Akun untuk Simpan Permanen →
+                    </button>
+                  )}
+                </div>
               </div>
 
               {liveHistory.length === 0 ? (
